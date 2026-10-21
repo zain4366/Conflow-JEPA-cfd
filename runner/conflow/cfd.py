@@ -669,9 +669,18 @@ def ogrid_2d(xy, n_around, n_normal, h1, radius, near_dist=0.04, normal_smooth=2
     spacing from h1 up to `near_dist` (chords), then straight-line blending to a circle of radius
     `radius` centred mid-way between LE and TE. Node j = 1 is exactly h1 from the wall."""
     w = airfoil_wall_nodes(xy, n_around)
+    ile = int(np.argmin(w[:, 0]))
+    ite = int(np.argmax(w[:, 0]))
+    return ogrid_from_loop(w, n_normal, h1, radius, 0.5 * (w[ile] + w[ite]), near_dist, normal_smooth)
+
+
+def ogrid_from_loop(w, n_normal, h1, radius, centre, near_dist=0.04, normal_smooth=20):
+    """O-grid around an exact closed loop of nodes w (n, 2), clockwise; see ogrid_2d."""
+    w = np.asarray(w, float)
     a = 0.5 * np.sum(w[:, 0] * np.roll(w[:, 1], -1) - np.roll(w[:, 0], -1) * w[:, 1])
     if a > 0:
-        raise ValueError("wall loop must be clockwise (lower TE -> LE -> upper TE)")
+        raise ValueError("wall loop must be clockwise")
+    n_around = len(w)
     g = _growth_ratio(h1, n_normal, radius)
     d = np.r_[0.0, h1 * (g ** np.arange(1, n_normal + 1) - 1) / (g - 1)]
     jn = int(np.searchsorted(d, near_dist))
@@ -686,12 +695,10 @@ def ogrid_2d(xy, n_around, n_normal, h1, radius, near_dist=0.04, normal_smooth=2
         nv = (1 - bl) * nrm0 + bl * nrm_s
         nv /= np.linalg.norm(nv, axis=1, keepdims=True)
         X[j], Y[j] = w[:, 0] + d[j] * nv[:, 0], w[:, 1] + d[j] * nv[:, 1]
-    ile = int(np.argmin(w[:, 0]))
-    ite = int(np.argmax(w[:, 0]))
-    c = 0.5 * (w[ile] + w[ite])
+    c = np.asarray(centre, float)
     L = np.stack([X[jn], Y[jn]], 1)
     th = np.unwrap(np.arctan2(L[:, 1] - c[1], L[:, 0] - c[0]))
-    if np.any(np.diff(th) >= 0) and np.any(np.diff(th) <= 0):
+    if not np.all(np.diff(th) < 0):
         s_ = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(L, axis=0), axis=1))]
         th = th[0] - 2 * np.pi * s_ / (s_[-1] + np.linalg.norm(L[-1] - L[0]))
     F = np.stack([c[0] + radius * np.cos(th), c[1] + radius * np.sin(th)], 1)
@@ -1167,7 +1174,16 @@ def prepare_case(case: dict, work, log=print) -> dict:
         row = {c: float(idx.array[ci, j]) for j, c in enumerate(_data.INDEX_COLUMNS)}
         prep["superwing"] = dict(selection=sel, wing_id=int(cfgw.wing_id[r]), index_row=row, hf_repo=repo,
                                  hf_revision=rev, license="CC BY-SA 4.0 (Yang et al., SuperWing)")
-        st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+        if case["mesh"]["type"] == "euler_tetra":
+            st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+        elif case["mesh"]["type"] == "rans_hybrid":
+            mr = _CFD["mesh3d_rans"]
+            st = wing_mesh_3d_rans(surf, work / "mesh.su2", reynolds=float(case["flow"]["reynolds"]),
+                                   yplus=mr["yplus"], growth=mr["growth"], last_layer_chords=mr["last_layer_chords"],
+                                   span_stride=mr["span_stride"], chord_stride=mr["chord_stride"],
+                                   n_radial=mr["n_radial"], n_rings=mr["n_rings"], log=log)
+        else:
+            raise ValueError(f"unknown SuperWing mesh type {case['mesh']['type']}")
         prep["mesh3d"] = st
         prep["mesh_file"] = "mesh.su2"
         prep["flow"] = dict(mach=row["mach"], aoa=row["aoa"], ref_area=row["s_ref_half"])
@@ -1229,3 +1245,315 @@ def timing_summary(work) -> dict:
     allt = np.concatenate(per)
     return dict(seconds_per_iter=float(np.median(allt)), seconds_per_iter_mean=float(np.mean(allt)),
                 startup_s_median=float(np.median(start)), n_segments=len(per))
+
+
+# ============================================================================= 3D RANS mesh (prism layer + gmsh tetra)
+
+def _vertex_normals(P, T):
+    A = 0.5 * np.cross(P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]])
+    N = np.zeros_like(P)
+    for k in range(3):
+        np.add.at(N, T[:, k], A)
+    return N / np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-300)
+
+
+def _smooth_normals(N, T, n_iter, fixed_span_nodes, span_axis):
+    nb_sum = np.zeros_like(N)
+    cnt = np.zeros(len(N))
+    E = np.concatenate([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]])
+    for _ in range(n_iter):
+        nb_sum[:] = 0.0
+        cnt[:] = 0.0
+        np.add.at(nb_sum, E[:, 0], N[E[:, 1]])
+        np.add.at(nb_sum, E[:, 1], N[E[:, 0]])
+        np.add.at(cnt, E[:, 0], 1)
+        np.add.at(cnt, E[:, 1], 1)
+        N = 0.5 * N + 0.5 * nb_sum / cnt[:, None]
+        N[fixed_span_nodes, span_axis] = 0.0
+        N /= np.linalg.norm(N, axis=1, keepdims=True)
+    return N
+
+
+def _face_normals(P, T):
+    A = np.cross(P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]])
+    return A / np.maximum(np.linalg.norm(A, axis=1, keepdims=True), 1e-300)
+
+
+def _min_dot(N, F, T):
+    """Per node: minimum dot product of its normal with the unit normals of its adjacent faces."""
+    out = np.full(len(N), np.inf)
+    for k in range(3):
+        np.minimum.at(out, T[:, k], np.einsum("ij,ij->i", N[T[:, k]], F))
+    return out
+
+
+def _visible_normals(N, F, T, tau=0.25, n_iter=200):
+    """Push node normals toward adjacent faces whose normal makes a dot product below `tau`, so that
+    every adjacent face sees the node normal from its outer side (sharp edges: TE, tip cap)."""
+    N = N.copy()
+    for _ in range(n_iter):
+        md = _min_dot(N, F, T)
+        act = md < tau
+        if not np.any(act):
+            break
+        corr = np.zeros_like(N)
+        for k in range(3):
+            d = np.einsum("ij,ij->i", N[T[:, k]], F)
+            w = np.where(act[T[:, k]] & (d < tau), tau - d, 0.0)
+            np.add.at(corr, T[:, k], 0.5 * w[:, None] * F)
+        N = N + corr
+        N /= np.linalg.norm(N, axis=1, keepdims=True)
+    return N
+
+
+def prism_corner_jacobians(bottom, top):
+    """Six corner Jacobians of prisms (bottom a, b, c counter-clockwise seen from the top d, e, f):
+    each corner's two triangle edges and its vertical edge. All six > 0 for a valid prism."""
+    a, b, c = bottom
+    d, e, f = top
+    det = lambda u, v, w: np.einsum("ij,ij->i", np.cross(u, v), w)
+    return (det(b - a, c - a, d - a), det(c - b, a - b, e - b), det(a - c, b - c, f - c),
+            det(e - d, f - d, d - a), det(f - e, d - e, e - b), det(d - f, e - f, f - c))
+
+
+def prism_volumes(bottom, top):
+    """Volumes of prisms (bottom triangle, top triangle), each split into 3 tetrahedra."""
+    def tv(a, b, c, d):
+        return np.einsum("ij,ij->i", np.cross(b - a, c - a), d - a) / 6.0
+    a, b, c = bottom
+    d, e, f = top
+    return tv(a, b, c, d), tv(b, c, d, e), tv(c, d, e, f)
+
+
+def wing_rans_surface(s_sw, span_stride=2, chord_stride=2):
+    """Wall triangulation (SU2 frame) for the RANS mesh: every `span_stride`-th span row plus the kink
+    and tip rows, every `chord_stride`-th chordwise node (LE kept); a sharp TE (first node == last)
+    is merged into one node; a flat tip cap closes the tip. Returns points (N, 3), triangles (outward),
+    ring size, rows used, the index of the root ring and the cap triangles."""
+    s_sw = np.asarray(s_sw, float)
+    ns, nc = s_sw.shape[1], s_sw.shape[2]
+    rows, kink = loft_rows(s_sw, span_stride)
+    if np.linalg.norm(s_sw[:, 0, 0] - s_sw[:, 0, -1]) > 1e-9:
+        raise ValueError("RANS mesher expects a sharp trailing edge (origingeom.npy convention)")
+    cols = np.arange(0, nc - 1, chord_stride)
+    if (nc // 2) not in cols:
+        raise ValueError("chord stride must keep the LE node")
+    m = len(cols)
+    P = np.stack([sw_to_su2(s_sw[:, r, cols].T) for r in rows])        # (R, m, 3)
+    R = len(rows)
+    idx = np.arange(R * m).reshape(R, m)
+    nx = np.roll(idx, -1, axis=1)
+    T = np.concatenate([np.stack([idx[:-1].ravel(), nx[:-1].ravel(), nx[1:].ravel()], 1),
+                        np.stack([idx[:-1].ravel(), nx[1:].ravel(), idx[1:].ravel()], 1)])
+    # tip cap: strips between the lower and upper nodes of the tip ring (ring index 0 = TE)
+    tip = idx[-1]
+    le = m // 2
+    k = np.arange(1, le)
+    lo, up = tip[k], tip[m - k]
+    cap = [np.array([[tip[0], tip[1], tip[m - 1]]])]
+    cap.append(np.stack([lo[:-1], lo[1:], up[1:]], 1))
+    cap.append(np.stack([lo[:-1], up[1:], up[:-1]], 1))
+    cap.append(np.array([[tip[le - 1], tip[le], tip[le + 1]]]))
+    cap = np.concatenate(cap)
+    pts = P.reshape(-1, 3)
+    # orientation: the open root ring is planar, so with the origin on the root plane the missing
+    # root cap adds no volume and the signed volume of wall + tip cap decides (outward = positive)
+    vol = _signed_volume_tris(pts - pts[idx[0, 0]], np.concatenate([T, cap]))
+    if vol < 0:
+        T, cap = T[:, ::-1].copy(), cap[:, ::-1].copy()
+    return dict(points=pts, tris=np.concatenate([T, cap]), n_wall_tris=int(len(T)), ring=m, rows=rows.tolist(),
+                kink_row=int(kink), root_ring=idx[0].copy(), cap_tris=int(len(cap)))
+
+
+def _signed_volume_tris(v, f):
+    a, b, c = v[f[:, 0]], v[f[:, 1]], v[f[:, 2]]
+    return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
+
+
+def extrude_prism_layers(points, tris, root_nodes, heights, local_scale, span_axis=1, smooth=30, min_fraction=0.6):
+    """March the wall outward in len(heights) layers along smoothed vertex normals (recomputed every
+    layer); node i moves min(heights[k] * local_scale[i], half its shortest adjacent edge) in layer k. Root-ring nodes keep their span
+    coordinate (they stay on the symmetry plane). Every prism must have six positive corner
+    Jacobians; nodes of a failing prism get their step halved (up to 8 times). If a layer still
+    fails, marching stops there (the returned array has fewer layers) unless fewer than
+    `min_fraction` of the planned layers were built, which raises."""
+    X = [np.asarray(points, float)]
+    root = np.asarray(root_nodes)
+    T = np.asarray(tris)
+    for k, h in enumerate(heights):
+        F = _face_normals(X[-1], T)
+        Nv = _visible_normals(_vertex_normals(X[-1], T), F, T)
+        Nv[root, span_axis] = 0.0
+        Nv /= np.linalg.norm(Nv, axis=1, keepdims=True)
+        N = _smooth_normals(Nv, T, smooth, root, span_axis)
+        md_v, md_s = _min_dot(Nv, F, T), _min_dot(N, F, T)
+        keep = md_s < 0.5 * np.minimum(md_v, 0.25)
+        N[keep] = Nv[keep]
+        # aspect-ratio limiter: a layer is never taller than half the shortest adjacent surface edge
+        E = np.concatenate([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]])
+        el = np.linalg.norm(X[-1][E[:, 0]] - X[-1][E[:, 1]], axis=1)
+        emin = np.full(len(N), np.inf)
+        np.minimum.at(emin, E[:, 0], el)
+        np.minimum.at(emin, E[:, 1], el)
+        step = np.minimum(h * np.asarray(local_scale), 0.5 * emin)
+        for _ in range(8):          # local repair: halve the step of nodes of an inverted prism
+            Xn = X[-1] + step[:, None] * N
+            Xn[root, span_axis] = X[0][root, span_axis]
+            J = prism_corner_jacobians((X[-1][T[:, 0]], X[-1][T[:, 1]], X[-1][T[:, 2]]),
+                                       (Xn[T[:, 0]], Xn[T[:, 1]], Xn[T[:, 2]]))
+            badt = np.min(np.stack(J), axis=0) <= 0
+            if not np.any(badt):
+                break
+            step[np.unique(T[badt])] *= 0.5
+        if np.any(badt):
+            if k < min_fraction * len(heights):
+                raise RuntimeError(f"layer {k + 1}: {int(badt.sum())} non-positive prisms after local step reduction")
+            break               # keep the k valid layers; the tetra region starts there
+        X.append(Xn)
+    return np.stack(X)          # (L + 1, N, 3), L <= len(heights)
+
+
+def annulus_and_dome(inner_loop_xyz, plane_y, centre_xz, radius, n_radial, h_first, n_rings, near_dist=0.05):
+    """Boundary triangles closing the tetra region: (1) the symmetry-plane annulus between the outer
+    root loop of the prism layer and a circle of `radius` (O-grid in the plane, ogrid_from_loop), and
+    (2) a farfield half-sphere on the wing side (y < plane_y) sharing the circle's nodes. Triangles
+    are oriented out of the tetra region (+y on the annulus, radially outward on the dome).
+    Returns points, annulus triangles, dome triangles; the first len(loop) points are the loop."""
+    L = np.asarray(inner_loop_xyz, float)
+    m = len(L)
+    xz = L[:, [0, 2]]
+    a = 0.5 * np.sum(xz[:, 0] * np.roll(xz[:, 1], -1) - np.roll(xz[:, 0], -1) * xz[:, 1])
+    order = np.arange(m) if a < 0 else np.r_[0, np.arange(m - 1, 0, -1)]
+    X, Z = ogrid_from_loop(xz[order], n_radial, h_first, radius, centre_xz, near_dist)
+    inv = np.empty(m, np.int64)
+    inv[order] = np.arange(m)
+    X, Z = X[:, inv], Z[:, inv]                       # back to the loop's own node order
+    pts = [np.stack([X.ravel(), np.full(X.size, plane_y), Z.ravel()], 1)]
+    idx = np.arange((n_radial + 1) * m).reshape(n_radial + 1, m)
+    nx = np.roll(idx, -1, axis=1)
+    ann = np.concatenate([np.stack([idx[:-1].ravel(), nx[:-1].ravel(), nx[1:].ravel()], 1),
+                          np.stack([idx[:-1].ravel(), nx[1:].ravel(), idx[1:].ravel()], 1)])
+    c = np.array([centre_xz[0], plane_y, centre_xz[1]])
+    th = np.arctan2(Z[-1] - c[2], X[-1] - c[0])
+    base = idx[-1]
+    nxt0 = (n_radial + 1) * m
+    dome, prev = [], base
+    for ph in np.linspace(0, np.pi / 2, n_rings + 1)[1:-1]:
+        ring = np.stack([c[0] + radius * np.cos(ph) * np.cos(th), np.full(m, plane_y - radius * np.sin(ph)),
+                         c[2] + radius * np.cos(ph) * np.sin(th)], 1)
+        ids = nxt0 + np.arange(m)
+        nxt0 += m
+        pts.append(ring)
+        dome += [np.stack([prev, np.roll(prev, -1), np.roll(ids, -1)], 1), np.stack([prev, np.roll(ids, -1), ids], 1)]
+        prev = ids
+    pole = nxt0
+    pts.append(np.array([[c[0], plane_y - radius, c[2]]]))
+    dome.append(np.stack([prev, np.roll(prev, -1), np.full(m, pole)], 1))
+    P = np.concatenate(pts)
+    dome = np.concatenate(dome)
+
+    def orient(tri, outward):
+        n = np.cross(P[tri[:, 1]] - P[tri[:, 0]], P[tri[:, 2]] - P[tri[:, 0]])
+        flip = np.einsum("ij,ij->i", n, outward(tri)) < 0
+        tri = tri.copy()
+        tri[flip] = tri[flip][:, ::-1]
+        return tri
+    ann = orient(ann, lambda t: np.tile([0.0, 1.0, 0.0], (len(t), 1)))
+    dome = orient(dome, lambda t: P[t].mean(axis=1) - c)
+    return P, ann, dome
+
+
+def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_layer_chords=0.01,
+                      span_stride=2, chord_stride=2, radius=None, n_radial=40, n_rings=16, log=None) -> dict:
+    """Hybrid RANS mesh: prism layer extruded from the wall (first cell from the flat-plate y+
+    estimate at the local chord Reynolds number, geometric growth until the layer height reaches
+    `last_layer_chords` x local chord), then gmsh tetrahedra between the prism layer, the
+    symmetry-plane annulus and a farfield half-sphere. Markers: wing, symmetry, farfield."""
+    import gmsh
+    radius = float(_CFD["superwing_holdout"]["farfield_radius_root_chords"] if radius is None else radius)
+    t0 = time.time()
+    w = wing_rans_surface(s_sw, span_stride, chord_stride)
+    P, T, m = w["points"], w["tris"], w["ring"]
+    R = len(w["rows"])
+    # local chord per node (ring-wise): streamwise extent of its span row
+    xr = P[:, 0].reshape(R, m)
+    chord = np.repeat(xr.max(axis=1) - xr.min(axis=1), m)
+    h1 = np.array([first_cell_height(reynolds * c, yplus) * c for c in chord])
+    n_layers = int(np.ceil(np.log(last_layer_chords / (h1 / chord).max()) / np.log(growth))) + 1
+    heights = growth ** np.arange(n_layers)            # times h1 (per node)
+    X = extrude_prism_layers(P, T, w["root_ring"], heights, h1, span_axis=1)
+    L = len(X) - 1
+    nwall = len(P)
+    plane_y = float(P[w["root_ring"][0], 1])
+    outer = X[-1]
+    loop = outer[w["root_ring"]]
+    xr0 = P[w["root_ring"], 0]
+    centre = (0.5 * (xr0.min() + xr0.max()), float(P[w["root_ring"], 2].mean()))
+    last_h = float(np.median(np.linalg.norm(X[-1] - X[-2], axis=1)))
+    ap, ann, dome = annulus_and_dome(loop, plane_y, centre, radius, n_radial, last_h, n_rings)
+    # tetra-region boundary: outer prism surface + annulus + dome (shared root loop nodes)
+    n_prism_nodes = (L + 1) * nwall
+    outer_ids = L * nwall + np.arange(nwall)
+    ap_ids = np.concatenate([outer_ids[w["root_ring"]], n_prism_nodes + np.arange(len(ap) - m)])
+    bnd_pts = np.concatenate([X.reshape(-1, 3), ap[m:]])
+    f_outer = outer_ids[T][:, ::-1]                      # tetra region lies outside: flip
+    f_ann, f_dome = ap_ids[ann], ap_ids[dome]
+    closed = np.concatenate([f_outer, f_ann, f_dome])
+    from . import geometry as _geom
+    wt = _geom.check_watertight(bnd_pts, closed)
+    if wt["n_open_edges"] or wt["n_nonmanifold_edges"] or not wt["orientation_consistent"]:
+        raise RuntimeError(f"tetra-region boundary not closed or not consistently oriented: {wt}")
+    used = np.unique(closed)
+    gmsh.initialize(["-noenv"])
+    try:
+        gmsh.option.setNumber("General.Terminal", 1 if log else 0)
+        gmsh.model.add("rans")
+        gmsh.model.addDiscreteEntity(2, 1)
+        gmsh.model.mesh.addNodes(2, 1, (used + 1).tolist(), bnd_pts[used].ravel().tolist())
+        gmsh.model.mesh.addElementsByType(1, 2, [], (closed + 1).ravel().tolist())
+        sl = gmsh.model.geo.addSurfaceLoop([1])
+        gmsh.model.geo.addVolume([sl], 1)
+        gmsh.model.geo.synchronize()
+        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 1)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", radius / 8)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        gmsh.option.setNumber("Mesh.Optimize", 1)
+        gmsh.model.mesh.generate(3)
+        etypes, etags, enodes = gmsh.model.mesh.getElements(3, 1)
+        if list(etypes) != [4]:
+            raise RuntimeError(f"unexpected volume element types {etypes}")
+        tets = np.asarray(enodes[0], np.int64).reshape(-1, 4) - 1
+        ntag, ncoord, _ = gmsh.model.mesh.getNodes()
+        gversion = gmsh.__version__
+    finally:
+        gmsh.finalize()
+    ntag = np.asarray(ntag, np.int64) - 1
+    ncoord = np.asarray(ncoord).reshape(-1, 3)
+    new = ntag[ntag >= len(bnd_pts)]
+    n_all = len(bnd_pts) + len(new)
+    allp = np.zeros((n_all, 3))
+    allp[:len(bnd_pts)] = bnd_pts
+    lut = np.full(int(ntag.max()) + 1, -1)
+    lut[:len(bnd_pts)] = np.arange(len(bnd_pts))
+    lut[new] = len(bnd_pts) + np.arange(len(new))
+    isnew = ntag >= len(bnd_pts)
+    allp[lut[ntag[isnew]]] = ncoord[isnew]
+    tets = lut[tets]
+    tv = np.einsum("ij,ij->i", np.cross(allp[tets[:, 1]] - allp[tets[:, 0]], allp[tets[:, 2]] - allp[tets[:, 0]]),
+                   allp[tets[:, 3]] - allp[tets[:, 0]])
+    tets[tv < 0] = tets[tv < 0][:, [0, 2, 1, 3]]
+    # prisms: layer k bottom triangle -> layer k+1 top triangle
+    pr = np.concatenate([np.concatenate([k * nwall + T, (k + 1) * nwall + T], 1) for k in range(L)])
+    # symmetry quads: prism side faces on root-ring edges (ring is closed)
+    rr = w["root_ring"]
+    e0, e1 = rr, np.roll(rr, -1)
+    sq = np.concatenate([np.stack([k * nwall + e0, k * nwall + e1, (k + 1) * nwall + e1, (k + 1) * nwall + e0], 1)
+                         for k in range(L)])
+    mk = {"wing": {VTK_TRI: T}, "symmetry": {VTK_TRI: f_ann, VTK_QUAD: sq}, "farfield": {VTK_TRI: f_dome}}
+    write_su2_mesh(out_path, allp, {VTK_PRISM: pr, VTK_TET: tets}, mk)
+    return dict(n_cells=int(len(pr) + len(tets)), n_prisms=int(len(pr)), n_tets=int(len(tets)), n_points=int(n_all),
+                n_layers=L, n_layers_planned=n_layers, growth=growth, h1_root=float(h1[w["root_ring"]].mean()), h1_min=float(h1.min()),
+                prism_layer_thickness_root=float(np.linalg.norm(X[-1][w["root_ring"]] - X[0][w["root_ring"]], axis=1).mean()),
+                n_wall_tris=int(len(T)), ring_nodes=m, span_rows=w["rows"], reynolds=reynolds, yplus_target=yplus,
+                radius=radius, mesh_seconds=time.time() - t0, gmsh_version=gversion,
+                tet_min_volume=float(np.abs(tv).min() / 6.0))

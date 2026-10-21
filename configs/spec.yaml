@@ -121,6 +121,7 @@ cfd:
       reynolds: 11.72e+6
       reynolds_length: 0.64607
       temperature_K: 288.15
+      semispan: 1.1963            # m, b of NPARC Table 3 (y/b); the TestCases mesh includes a tip cap to y = 1.2176
       stations_eta: [0.20, 0.44, 0.65, 0.80, 0.90, 0.95, 0.99]
       shock_check_eta: [0.44, 0.65, 0.80]     # stations 2, 3, 4 of NPARC Table 3, fixed before any run
       shock_tol_chord: 0.03
@@ -151,6 +152,15 @@ cfd:
     size_wing_max: 0.012          #  0.003 / 0.03 / 30 gave 161,688 cells and an LE suction peak of
     size_far: 5.0                 #  -0.9 vs -1.5 in ADflow; changed before any gate decision)
     curvature_points: 40          # gmsh Mesh.MeshSizeFromCurvature
+  mesh3d_rans:
+    tool: prism layer marched from the data surface (conflow.cfd.extrude_prism_layers) + gmsh tetrahedra
+    span_stride: 2                # every 2nd span row of the 129 x 257 grid (plus kink and tip)
+    chord_stride: 2               # every 2nd chordwise node (128 around a sharp-TE section)
+    yplus: 1.0                    # first cell from the flat-plate estimate at the local chord Reynolds number
+    growth: 1.2
+    last_layer_chords: 0.01       # planned last layer height / local chord (layers stop earlier if invalid)
+    n_radial: 40                  # symmetry-plane annulus layers out to the farfield radius
+    n_rings: 16                   # farfield half-sphere rings
   mesh2d_ogrid:
     n_around: 320
     n_normal: 128

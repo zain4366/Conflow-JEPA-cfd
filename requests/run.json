@@ -1,5 +1,5 @@
 {
-  "note": "Task 2 validation and timing runs (PLAN section 7, Task 2)",
-  "cases": ["m6_euler", "m6_rans_hexa", "m6_rans_hybrid", "rae2822_c6", "rae2822_c6_ogrid", "sw_holdout_euler"],
-  "reference": true
+  "note": "Task 2, Gate G1 accuracy part: held-out SuperWing wing with RANS-SA on the ConFlow hybrid mesh",
+  "cases": ["sw_holdout_rans"],
+  "reference": false
 }

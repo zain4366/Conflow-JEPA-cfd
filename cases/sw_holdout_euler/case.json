@@ -6,7 +6,8 @@
     "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
   },
   "mesh": {
-    "size_factor": 1.0
+    "size_factor": 1.0,
+    "type": "euler_tetra"
   },
   "flow": {
     "ref_length": 1.0,
