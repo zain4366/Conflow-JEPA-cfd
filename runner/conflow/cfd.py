@@ -790,11 +790,20 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
         gmsh.model.add("superwing")
         occ = gmsh.model.occ
 
+        le = nc // 2
+
         def wire(i):
-            tags = [occ.addPoint(*P[i, j]) for j in range(nc)]
-            spl = occ.addSpline(tags)
-            te = occ.addLine(tags[-1], tags[0])
-            return occ.addWire([spl, te])
+            # lower (TE -> LE) and upper (LE -> TE) splines through the data nodes, joined at the LE
+            # node; a sharp TE (origingeom.npy: first node == last node) shares one TE point, a blunt
+            # TE (builder, 0.004c) gets a straight base segment
+            sharp = np.linalg.norm(P[i, 0] - P[i, -1]) < 1e-9
+            tags = [occ.addPoint(*P[i, j]) for j in range(nc - 1 if sharp else nc)]
+            if sharp:
+                tags.append(tags[0])
+            lo = occ.addSpline(tags[:le + 1])
+            up = occ.addSpline(tags[le:])
+            parts = [lo, up] if sharp else [lo, up, occ.addLine(tags[-1], tags[0])]
+            return occ.addWire(parts)
 
         inner = occ.addThruSections([wire(i) for i in rows if i <= kink], makeSolid=True, makeRuled=False)
         outer = occ.addThruSections([wire(i) for i in rows if i >= kink], makeSolid=True, makeRuled=False)
@@ -1048,6 +1057,8 @@ def prepare_case(case: dict, work, log=print) -> dict:
         split = np.where(np.isin(idx.wing_row, test_rows), _data.SPLIT_TEST, _data.SPLIT_FIT)
         sel = select_holdout_case(idx.wing_row, split, idx.mach, idx.aoa, tuple(hs["row_range"]), hs["seed"], hs["mach_target"])
         r, ci = sel["wing_row"], sel["case_index"]
+        (work / "selection.json").write_text(json.dumps(dict(sel, wing_id=int(cfgw.wing_id[r]), index_row={
+            c: float(idx.array[ci, j]) for j, c in enumerate(_data.INDEX_COLUMNS)}, downloads=prep["downloads"]), indent=1))
         surf = _data.NpySource(hf_url(repo, rev, "origingeom.npy")).read(r, r + 1)[0]
         cp_ref = _data.NpySource(hf_url(repo, rev, "data.npy")).read(ci, ci + 1, channel=0)[0]
         np.save(work / "surface_origingeom.npy", surf)

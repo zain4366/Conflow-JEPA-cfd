@@ -1,1 +1,1 @@
-{"note": "quick check of the SuperWing meshing and Euler setup", "cases": ["sw_holdout_euler"]}
+{"note": "quick check 2: sharp-TE section wires", "cases": ["sw_holdout_euler"]}

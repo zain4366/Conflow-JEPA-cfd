@@ -135,6 +135,8 @@ def main() -> int:
         st["status"] = "failed"
         st["stop_reason"] = f"{type(e).__name__}: {e}"
         extra["traceback"] = traceback.format_exc()
+        if prep is None and (work / "selection.json").exists():
+            extra["selection_before_failure"] = json.loads((work / "selection.json").read_text())
         print(extra["traceback"])
     sp.write_text(json.dumps(st, indent=1, default=str))
     write_out(case, work, out, st, prep, extra)
