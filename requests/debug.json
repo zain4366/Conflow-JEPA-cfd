@@ -1,1 +1,1 @@
-{"note": "quick check 2: sharp-TE section wires", "cases": ["sw_holdout_euler"]}
+{"note": "quick check 3: finer Euler sizes, wall-triangulation integration", "cases": ["sw_holdout_euler"]}

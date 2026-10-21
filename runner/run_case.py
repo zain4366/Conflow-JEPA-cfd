@@ -73,6 +73,12 @@ def write_out(case, work: Path, out: Path, st: dict, prep: dict, extra: dict):
     for name in ("surface_flow.csv", "surface_origingeom.npy", "cp_adflow_cells.npy"):
         if (work / name).exists():
             shutil.copy2(work / name, out / name)
+    if prep and (work / prep["mesh_file"]).exists() and not (out / "wall_faces.npy").exists():
+        import numpy as np
+        mk = cfd.read_su2_markers(work / prep["mesh_file"], [case["markers"]["wall"]])
+        d = mk[case["markers"]["wall"]]
+        faces = d[cfd.VTK_LINE] if cfd.VTK_LINE in d else cfd.wall_triangles(mk, case["markers"]["wall"])
+        np.save(out / "wall_faces.npy", faces.astype(np.int64))
     segs = sorted(work.glob("seg*.cfg"))
     if segs:
         shutil.copy2(segs[-1], out / "config_last_segment.cfg")
@@ -124,8 +130,16 @@ def main() -> int:
             c = cfd.compare_superwing(s, np.load(work / "surface_origingeom.npy"), sw["aoa"], sw["s_ref_half"],
                                       cp_ref_cells=np.load(work / "cp_adflow_cells.npy"))
             h = cfd.concat_histories([cfd.read_history(p) for p in sorted(work.glob("history_seg*.csv"))])
+            mk = cfd.read_su2_markers(work / prep["mesh_file"], [case["markers"]["wall"]])
+            tri = cfd.wall_triangles(mk, case["markers"]["wall"])
+            lut = np.full(int(s["PointID"].max()) + 1, -1)
+            lut[s["PointID"]] = np.arange(len(s["PointID"]))
+            pts_sw = cfd.su2_to_sw(np.stack([s["x"], s["y"], s["z"]], 1))
+            wi = cfd.integrate_wall(pts_sw, lut[tri], s["Pressure_Coefficient"], sw["aoa"], sw["s_ref_half"],
+                                    nodes_sw=np.load(work / "surface_origingeom.npy"))
             extra["superwing_comparison"] = dict(
-                su2_pressure_on_data_grid=dict(cl=c["cl"], cd=c["cd"], cm=c["cm"]),
+                su2_pressure_on_su2_wall=wi,
+                su2_pressure_mapped_to_data_grid=dict(cl=c["cl"], cd=c["cd"], cm=c["cm"]),
                 su2_history_last=dict(cl=float(h["CL"][-1]), cd=float(h["CD"][-1])),
                 adflow=dict(cl_solver=sw["cl_solver"], cd_solver=sw["cd_solver"], cm_solver=sw["cm_solver"],
                             cl_surface=sw["cl_surface"], cd_surface=sw["cd_surface"], cm_surface=sw["cm_surface"]),

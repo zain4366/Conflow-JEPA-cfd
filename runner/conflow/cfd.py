@@ -348,6 +348,29 @@ def write_su2_mesh(path, points, elements: dict, markers: dict) -> Path:
     return path
 
 
+def read_su2_markers(path, names=None) -> dict:
+    """Marker elements only (skips the volume elements and points; fast for large meshes)."""
+    out = {}
+    with open(path) as f:
+        it = iter(f)
+        for ln in it:
+            s = ln.split("%", 1)[0].strip()
+            if s.startswith(("NELEM", "NPOIN")):
+                n = int(s.split("=", 1)[1].split()[0])
+                for _ in range(n):
+                    next(it)
+            elif s.startswith("MARKER_TAG"):
+                name = s.split("=", 1)[1].strip()
+                ln2 = next(it)
+                while not ln2.strip().startswith("MARKER_ELEMS"):
+                    ln2 = next(it)
+                n = int(ln2.split("=", 1)[1].split()[0])
+                rows = [next(it).split() for _ in range(n)]
+                if names is None or name in names:
+                    out[name] = _group([(int(r[0]), [int(x) for x in r[1:1 + NODES_PER[int(r[0])]]]) for r in rows])
+    return out
+
+
 def tet_volumes(mesh: Su2Mesh) -> np.ndarray:
     t = mesh.elements.get(VTK_TET)
     if t is None:
@@ -524,6 +547,53 @@ def wing_station_cut(pts, cp, eta, span_axis=1, up_axis=2, stream_axis=0, n=161,
     for name, m in (("upper", upper), ("lower", ~upper)):
         f = LinearNDInterpolator(np.stack([xi[m], (ss[m] - sc) / w], 1), cps[m])
         out[name] = dict(x_c=xg, cp=f(np.stack([xg, np.zeros_like(xg)], 1)))
+    return out
+
+
+def wall_triangles(markers: dict, marker: str) -> np.ndarray:
+    """Triangles (global point ids) of a 3D wall marker; quads are split in two. `markers` is
+    Su2Mesh.markers or the result of read_su2_markers."""
+    d = markers[marker]
+    tris = [d[VTK_TRI]] if VTK_TRI in d else []
+    if VTK_QUAD in d:
+        q = d[VTK_QUAD]
+        tris += [q[:, [0, 1, 2]], q[:, [0, 2, 3]]]
+    return np.concatenate(tris)
+
+
+def slice_wall(points, tris, values, s_cut, span_axis=1, up_axis=2, stream_axis=0) -> dict:
+    """Exact planar cut (span coordinate = s_cut) of a triangulated wall with linear interpolation of
+    `values` along the cut edges. points (N, 3) indexed by `tris`; values (N,).
+    Returns x/c and value per surface (sorted), chord and LE position of the cut."""
+    P = np.asarray(points, float)
+    v = np.asarray(values, float)
+    T = np.asarray(tris)
+    sv = P[T, span_axis] - s_cut
+    crosses = (sv.min(axis=1) < 0) & (sv.max(axis=1) >= 0)
+    T, sv = T[crosses], sv[crosses]
+    pts, vals = [], []
+    for a, b in ((0, 1), (1, 2), (2, 0)):
+        sa, sb = sv[:, a], sv[:, b]
+        m = (sa < 0) != (sb < 0)
+        t = sa[m] / (sa[m] - sb[m])
+        ia, ib = T[m, a], T[m, b]
+        pts.append(P[ia] + t[:, None] * (P[ib] - P[ia]))
+        vals.append(v[ia] + t * (v[ib] - v[ia]))
+    if not pts or sum(len(q) for q in pts) < 6:
+        raise ValueError(f"cut at {s_cut} crosses too few wall triangles")
+    X, V = np.concatenate(pts), np.concatenate(vals)
+    x, z = X[:, stream_axis], X[:, up_axis]
+    i_le, i_te = int(np.argmin(x)), int(np.argmax(x))
+    chord = float(x[i_te] - x[i_le])
+    xi = (x - x[i_le]) / chord
+    zc = z[i_le] + xi * (z[i_te] - z[i_le])
+    upper = z >= zc
+    out = dict(chord=chord, x_le=float(x[i_le]), span=float(s_cut), n_points=int(len(x)))
+    for name, m in (("upper", upper), ("lower", ~upper)):
+        o = np.argsort(xi[m])
+        xs, vs = xi[m][o], V[m][o]
+        keep = np.r_[True, np.diff(xs) > 1e-9]
+        out[name] = dict(x_c=xs[keep], cp=vs[keep])
     return out
 
 
@@ -709,6 +779,37 @@ def compare_superwing(surface: dict, nodes_sw, aoa, s_ref, cp_ref_cells=None, re
     if cp_ref_cells is not None:
         out["cp_rmse_vs_ref"] = float(np.sqrt(np.mean((cp - np.asarray(cp_ref_cells, float)) ** 2)))
     return out
+
+
+def integrate_wall(pts_sw, tris, cp, aoa, s_ref, ref_point=(0.25, 0.0, 0.0), c_ref=1.0, nodes_sw=None) -> dict:
+    """Pressure-only CL, CD, CMz on the solver's own wall triangulation (SW frame, nodal Cp averaged to
+    each triangle). Triangle normals are oriented outward with the nearest data-grid cell normal
+    (nodes_sw, the data surface) when given; spanwise-facing tip-cap triangles do not affect lift,
+    drag or pitching moment."""
+    from scipy.spatial import cKDTree
+    from . import data as _data
+    P = np.asarray(pts_sw, float)
+    T = np.asarray(tris)
+    a, b, c = P[T[:, 0]], P[T[:, 1]], P[T[:, 2]]
+    A = 0.5 * np.cross(b - a, c - a)
+    cen = (a + b + c) / 3.0
+    n_flip = 0
+    if nodes_sw is not None:
+        Ad = _data.outward_vector_areas(np.asarray(nodes_sw, float)).reshape(3, -1).T
+        cd_ = _data.cell_centres(np.asarray(nodes_sw, float)).reshape(3, -1).T
+        _, j = cKDTree(cd_).query(cen)
+        flip = np.einsum("ij,ij->i", A, Ad[j]) < 0
+        A[flip] *= -1
+        n_flip = int(flip.sum())
+    cpt = np.asarray(cp, float)[T].mean(axis=1)
+    dF = -cpt[:, None] * A
+    F = dF.sum(axis=0)
+    al = np.radians(aoa)
+    r = cen - np.asarray(ref_point, float)
+    mz = np.sum(r[:, 0] * dF[:, 1] - r[:, 1] * dF[:, 0])
+    return dict(cl=float((F[1] * np.cos(al) - F[0] * np.sin(al)) / s_ref),
+                cd=float((F[0] * np.cos(al) + F[1] * np.sin(al)) / s_ref),
+                cm=float(mz / (s_ref * c_ref)), n_triangles=int(len(T)), n_flipped=n_flip)
 
 
 # ============================================================================= 3D Euler mesh (gmsh)

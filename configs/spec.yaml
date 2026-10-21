@@ -147,10 +147,10 @@ cfd:
   mesh3d_euler:
     tool: gmsh (OpenCASCADE loft through the data surface sections)
     loft_span_stride: 4           # every 4th span station plus root, kink and tip
-    size_min: 0.003               # root-chord units
-    size_wing_max: 0.03
-    size_far: 5.0
-    curvature_points: 30          # gmsh Mesh.MeshSizeFromCurvature
+    size_min: 0.0015              # root-chord units (revised 22 Oct after the first functional run:
+    size_wing_max: 0.012          #  0.003 / 0.03 / 30 gave 161,688 cells and an LE suction peak of
+    size_far: 5.0                 #  -0.9 vs -1.5 in ADflow; changed before any gate decision)
+    curvature_points: 40          # gmsh Mesh.MeshSizeFromCurvature
   mesh2d_ogrid:
     n_around: 320
     n_normal: 128
