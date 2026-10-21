@@ -1,5 +1,5 @@
 {
-  "note": "Task 2, Gate G1 accuracy part: held-out SuperWing wing with RANS-SA on the ConFlow hybrid mesh",
+  "note": "Task 2, Gate G1 accuracy part (attempt 2, gmsh node mapping fixed): held-out SuperWing wing, RANS-SA",
   "cases": ["sw_holdout_rans"],
   "reference": false
 }

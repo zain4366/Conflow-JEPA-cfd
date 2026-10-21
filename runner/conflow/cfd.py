@@ -1463,6 +1463,23 @@ def annulus_and_dome(inner_loop_xyz, plane_y, centre_xz, radius, n_radial, h_fir
     return P, ann, dome
 
 
+def _merge_gmsh_nodes(bnd_pts, used, gtags, gcoords, tol=1e-10):
+    """Point table and gmsh-tag -> index lookup after tetra meshing. Boundary nodes are matched by
+    coordinates (gmsh may renumber), so they keep their own indices; nodes gmsh created are appended.
+    Raises if a boundary node handed to gmsh is not found again."""
+    from scipy.spatial import cKDTree
+    d, j = cKDTree(bnd_pts[used]).query(gcoords)
+    is_b = d <= tol * max(1.0, float(np.abs(bnd_pts).max()))
+    if is_b.sum() != len(used):
+        raise RuntimeError(f"gmsh returned {int(is_b.sum())} of {len(used)} boundary nodes")
+    new = np.where(~is_b)[0]
+    allp = np.concatenate([bnd_pts, gcoords[new]])
+    lut = np.full(int(gtags.max()) + 1, -1, np.int64)
+    lut[gtags[is_b]] = used[j[is_b]]
+    lut[gtags[new]] = len(bnd_pts) + np.arange(len(new))
+    return allp, lut
+
+
 def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_layer_chords=0.01,
                       span_stride=2, chord_stride=2, radius=None, n_radial=40, n_rings=16, log=None) -> dict:
     """Hybrid RANS mesh: prism layer extruded from the wall (first cell from the flat-plate y+
@@ -1518,6 +1535,7 @@ def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_laye
         gmsh.option.setNumber("Mesh.MeshSizeMax", radius / 8)
         gmsh.option.setNumber("Mesh.Algorithm3D", 1)
         gmsh.option.setNumber("Mesh.Optimize", 1)
+        gmsh.option.setNumber("Mesh.Renumber", 0)
         gmsh.model.mesh.generate(3)
         etypes, etags, enodes = gmsh.model.mesh.getElements(3, 1)
         if list(etypes) != [4]:
@@ -1527,18 +1545,12 @@ def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_laye
         gversion = gmsh.__version__
     finally:
         gmsh.finalize()
-    ntag = np.asarray(ntag, np.int64) - 1
     ncoord = np.asarray(ncoord).reshape(-1, 3)
-    new = ntag[ntag >= len(bnd_pts)]
-    n_all = len(bnd_pts) + len(new)
-    allp = np.zeros((n_all, 3))
-    allp[:len(bnd_pts)] = bnd_pts
-    lut = np.full(int(ntag.max()) + 1, -1)
-    lut[:len(bnd_pts)] = np.arange(len(bnd_pts))
-    lut[new] = len(bnd_pts) + np.arange(len(new))
-    isnew = ntag >= len(bnd_pts)
-    allp[lut[ntag[isnew]]] = ncoord[isnew]
-    tets = lut[tets]
+    allp, lut = _merge_gmsh_nodes(bnd_pts, used, np.asarray(ntag, np.int64), ncoord)
+    n_all = len(allp)
+    tets = lut[tets + 1]                              # gmsh tags -> point indices
+    if np.any(tets < 0):
+        raise RuntimeError("tetrahedra reference nodes gmsh did not return")
     tv = np.einsum("ij,ij->i", np.cross(allp[tets[:, 1]] - allp[tets[:, 0]], allp[tets[:, 2]] - allp[tets[:, 0]]),
                    allp[tets[:, 3]] - allp[tets[:, 0]])
     tets[tv < 0] = tets[tv < 0][:, [0, 2, 1, 3]]
