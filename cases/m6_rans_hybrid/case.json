@@ -1,0 +1,35 @@
+{
+  "kind": "su2_testcase",
+  "solver": "rans_sa",
+  "mesh": {
+    "repo": "su2code/TestCases",
+    "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+    "path": "rans/oneram6/mesh_ONERAM6_turb_hybrid_258969.su2"
+  },
+  "flow": {
+    "mach": 0.8395,
+    "aoa": 3.06,
+    "ref_area": 0.0,
+    "ref_length": 0.64607,
+    "moment_ref": [
+      0.25,
+      0.0,
+      0.0
+    ],
+    "reynolds": 11720000.0,
+    "reynolds_length": 0.64607,
+    "temperature": 288.15
+  },
+  "markers": {
+    "wall": "WING",
+    "far": "FARFIELD",
+    "sym": "SYMMETRY"
+  },
+  "numerics": {
+    "scheme": "ROE",
+    "multigrid": 0,
+    "cfl": 4.0
+  },
+  "note": "ONERA M6 RANS-SA on the 258,969-cell hybrid mesh; basis of the RANS cost projection (Gate G1)",
+  "name": "m6_rans_hybrid"
+}

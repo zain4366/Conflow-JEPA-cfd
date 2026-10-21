@@ -1,0 +1,81 @@
+# One SU2 job segment for one case (called by su2.yml). The case's work directory (mesh, restart
+# file, histories, state) travels between chained jobs as the artifact work-<case>; small result
+# files go to out-<case>. A case that already has a final status skips the expensive steps.
+name: su2-segment
+on:
+  workflow_call:
+    inputs:
+      case: {type: string, required: true}
+      segment: {type: number, required: true}
+      last: {type: boolean, required: true}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - name: Job start time
+        id: t0
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - name: Previous segment state
+        if: inputs.segment > 1
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: work-${{ inputs.case }}
+          path: work/${{ inputs.case }}
+      - name: Check state
+        id: chk
+        run: python3 runner/state_check.py work/${{ inputs.case }} ${{ inputs.segment }} | tee -a "$GITHUB_OUTPUT"
+      - name: Install SU2 8.5.0 and gmsh from conda-forge (micromamba)
+        if: steps.chk.outputs.active == 'true'
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: env/su2-env.yml
+          cache-environment: true
+          init-shell: bash
+      - name: Record environment
+        if: steps.chk.outputs.active == 'true'
+        shell: bash -el {0}
+        run: |
+          mkdir -p work/${{ inputs.case }}
+          { echo "segment=${{ inputs.segment }}"; date -u; nproc; lscpu | head -20; free -g;
+            micromamba list | grep -E "^ *(su2|gmsh|python-gmsh|openmpi|numpy|scipy|python) "; SU2_CFD --help | head -1;
+          } > work/${{ inputs.case }}/env_seg${{ inputs.segment }}.txt 2>&1 || true
+          cat work/${{ inputs.case }}/env_seg${{ inputs.segment }}.txt
+      - name: Run case
+        id: run
+        if: steps.chk.outputs.active == 'true'
+        shell: bash -el {0}
+        env:
+          OMPI_MCA_rmaps_base_oversubscribe: "1"
+        run: |
+          python runner/run_case.py --case ${{ inputs.case }} --work work/${{ inputs.case }} \
+            --out out/${{ inputs.case }} --job-start ${{ steps.t0.outputs.epoch }} \
+            ${{ inputs.last && '--last-job' || '' }}
+          cp work/${{ inputs.case }}/env_seg*.txt out/${{ inputs.case }}/ || true
+      - name: Save work directory for the next segment
+        if: steps.run.outputs.paused == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: work-${{ inputs.case }}
+          path: work/${{ inputs.case }}
+          overwrite: true
+          retention-days: 7
+      - name: Mark the case finished for later segments (state only)
+        if: always() && steps.chk.outputs.active == 'true' && steps.run.outputs.paused != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: work-${{ inputs.case }}
+          path: work/${{ inputs.case }}/state.json
+          overwrite: true
+          retention-days: 7
+      - name: Save results
+        if: always() && steps.chk.outputs.active == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: out-${{ inputs.case }}
+          path: out/${{ inputs.case }}
+          overwrite: true
+          retention-days: 30

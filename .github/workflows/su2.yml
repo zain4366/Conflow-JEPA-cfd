@@ -1,0 +1,115 @@
+# SU2 runs for ConFlow-JEPA. Trigger: edit requests/run.json on main (push), or run the workflow
+# by hand (Actions > su2 > Run workflow) with a comma-separated list of case folders.
+# One case per matrix job; up to 4 chained jobs per case (restart from the saved solution).
+# Results (status, history, surface, logs) are committed to the branch `results`.
+name: su2
+on:
+  push:
+    branches: [main]
+    paths: ["requests/**"]
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: "Comma-separated case names (folders in cases/)"
+        required: true
+      reference:
+        description: "Also download the experimental reference data (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: su2-runner
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      cases: ${{ steps.p.outputs.cases }}
+      reference: ${{ steps.p.outputs.reference }}
+      any_cases: ${{ steps.p.outputs.any_cases }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: python3 runner/plan.py "${{ github.event.inputs.cases }}" "${{ github.event.inputs.reference }}" | tee -a "$GITHUB_OUTPUT"
+
+  reference:
+    needs: plan
+    if: needs.plan.outputs.reference == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --quiet numpy scipy pyyaml requests
+      - run: python3 runner/fetch_reference.py out/reference
+      - uses: actions/upload-artifact@v4
+        with: {name: reference, path: out/reference, retention-days: 30}
+
+  seg1:
+    needs: plan
+    if: needs.plan.outputs.any_cases == 'true'
+    strategy:
+      fail-fast: false
+      matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}
+    uses: ./.github/workflows/segment.yml
+    with: {case: "${{ matrix.case }}", segment: 1, last: false}
+
+  seg2:
+    needs: [plan, seg1]
+    if: always() && needs.plan.outputs.any_cases == 'true'
+    strategy:
+      fail-fast: false
+      matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}
+    uses: ./.github/workflows/segment.yml
+    with: {case: "${{ matrix.case }}", segment: 2, last: false}
+
+  seg3:
+    needs: [plan, seg2]
+    if: always() && needs.plan.outputs.any_cases == 'true'
+    strategy:
+      fail-fast: false
+      matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}
+    uses: ./.github/workflows/segment.yml
+    with: {case: "${{ matrix.case }}", segment: 3, last: false}
+
+  seg4:
+    needs: [plan, seg3]
+    if: always() && needs.plan.outputs.any_cases == 'true'
+    strategy:
+      fail-fast: false
+      matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}
+    uses: ./.github/workflows/segment.yml
+    with: {case: "${{ matrix.case }}", segment: 4, last: true}
+
+  collect:
+    needs: [plan, reference, seg1, seg2, seg3, seg4]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: {path: artifacts, pattern: "out-*"}
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: {name: reference, path: artifacts/reference}
+      - name: Commit results to the results branch
+        run: |
+          set -e
+          cp runner/collect.py /tmp/collect.py
+          git config user.name "conflow-cfd-runner"
+          git config user.email "actions@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin results >/dev/null; then
+            git fetch origin results && git checkout -B results origin/results
+          else
+            git checkout --orphan results && git rm -rf -q . && git clean -fdq -e artifacts
+            printf "# SU2 results\n\nWritten by the su2 workflow. SuperWing excerpts: CC BY-SA 4.0, Yang et al. (2025), huggingface.co/datasets/yunplus/SuperWing.\n" > README.md
+          fi
+          python3 /tmp/collect.py artifacts . "${{ github.run_id }}" '${{ needs.plan.outputs.cases }}'
+          rm -rf artifacts
+          git add -A
+          git commit -q -m "SU2 results, run ${{ github.run_id }}" || echo "nothing to commit"
+          for i in 1 2 3; do git push origin results && break; git pull --rebase origin results; done

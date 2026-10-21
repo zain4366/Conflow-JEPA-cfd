@@ -1,0 +1,13 @@
+# SU2 runner environment (conda-forge). SU2 8.5.0 is built with OpenMPI; its recipe allows python < 3.12.
+name: su2
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - su2=8.5.0
+  - numpy
+  - scipy
+  - pyyaml
+  - requests
+  - gmsh
+  - python-gmsh

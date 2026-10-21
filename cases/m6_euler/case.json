@@ -1,0 +1,27 @@
+{
+  "kind": "su2_testcase",
+  "solver": "euler",
+  "mesh": {
+    "repo": "su2code/TestCases",
+    "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+    "path": "euler/oneram6/mesh_ONERAM6_inv_ffd.su2"
+  },
+  "flow": {
+    "mach": 0.8395,
+    "aoa": 3.06,
+    "ref_area": 0.0,
+    "ref_length": 0.64607,
+    "moment_ref": [
+      0.25,
+      0.0,
+      0.0
+    ]
+  },
+  "markers": {
+    "wall": "WING",
+    "far": "FARFIELD",
+    "sym": "SYMMETRY"
+  },
+  "note": "ONERA M6, NPARC test 2308 conditions; mesh and numerics of SU2 TestCases euler/oneram6",
+  "name": "m6_euler"
+}

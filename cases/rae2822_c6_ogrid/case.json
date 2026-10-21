@@ -1,0 +1,35 @@
+{
+  "kind": "rae_ogrid",
+  "solver": "rans_sa",
+  "mesh": {
+    "repo": "su2code/TestCases",
+    "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+    "path": "rans/rae2822/mesh_RAE2822_turb.su2",
+    "airfoil_marker": "AIRFOIL"
+  },
+  "flow": {
+    "mach": 0.729,
+    "aoa": 2.31,
+    "ref_area": 1.0,
+    "ref_length": 1.0,
+    "moment_ref": [
+      0.25,
+      0.0,
+      0.0
+    ],
+    "reynolds": 6500000.0,
+    "reynolds_length": 1.0,
+    "temperature": 288.15
+  },
+  "markers": {
+    "wall": "airfoil",
+    "far": "farfield"
+  },
+  "numerics": {
+    "scheme": "JST",
+    "multigrid": 3,
+    "cfl": 10.0
+  },
+  "note": "RAE 2822 case 6 on the ConFlow O-grid (airfoil nodes of the TestCases mesh); checks the 2D mesher",
+  "name": "rae2822_c6_ogrid"
+}

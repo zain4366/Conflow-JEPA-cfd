@@ -1,0 +1,14 @@
+{
+ "source_repo": "zain4366/conflow-jepa (private)",
+ "source_commit": "7ccfac3a2fee96cabf89063cacf07d12337e5f3f",
+ "files": {
+  "runner/conflow/__init__.py": "b398150e566193170e43be65e69cd39e92cd5a0083b5b6b196e29a8ffc0d33b9",
+  "runner/conflow/cfd.py": "19d5953dc62359bed79bbe38833d2fcf190e4d4162eb0a36f7912eadbf1ffba7",
+  "runner/conflow/data.py": "33f49fcfab27a9db7cf806437257b03f334b009d486558c74c054072c5abf8ea",
+  "runner/conflow/geometry.py": "66b020439fe3ad4463a9cdadfe7b3160bc762b81d0c7272bfa30751bccc4fd56",
+  "runner/conflow/spec.py": "aa3b87030443c2e7de5707b2d1bacf62c32d8a1eca142c129e673877b630b3c2",
+  "runner/conflow/records.py": "3b8ad6c3800a62a926558a874de94a434b5a42465724811c8a6329f668e9c480",
+  "runner/conflow/miniparquet.py": "3fdf1a2c3ec4c67ae555051c00e3495f30f5cba350541023fd63492603ced32c",
+  "configs/spec.yaml": "2148ca0701a6405f5d7f0a99873acf4f9a996f92a400807fad00857175371f1d"
+ }
+}

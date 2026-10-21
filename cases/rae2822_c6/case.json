@@ -1,0 +1,34 @@
+{
+  "kind": "su2_testcase",
+  "solver": "rans_sa",
+  "mesh": {
+    "repo": "su2code/TestCases",
+    "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+    "path": "rans/rae2822/mesh_RAE2822_turb.su2"
+  },
+  "flow": {
+    "mach": 0.729,
+    "aoa": 2.31,
+    "ref_area": 1.0,
+    "ref_length": 1.0,
+    "moment_ref": [
+      0.25,
+      0.0,
+      0.0
+    ],
+    "reynolds": 6500000.0,
+    "reynolds_length": 1.0,
+    "temperature": 288.15
+  },
+  "markers": {
+    "wall": "AIRFOIL",
+    "far": "FARFIELD"
+  },
+  "numerics": {
+    "scheme": "JST",
+    "multigrid": 3,
+    "cfl": 10.0
+  },
+  "note": "RAE 2822 case 6, mesh and numerics of SU2 TestCases rans/rae2822/turb_SA_RAE2822.cfg",
+  "name": "rae2822_c6"
+}

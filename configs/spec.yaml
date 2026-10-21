@@ -1,0 +1,178 @@
+# Machine-readable copy of plan/PLAN.md section 4 (reference specification).
+# Single source of truth for numbers used by code. Change PLAN.md and this file together.
+version: 2
+data:
+  source: hf://datasets/yunplus/SuperWing
+  license: CC BY-SA 4.0
+  files:
+    configs: configs.dat
+    index: index.npy
+    train_split: train.parquet
+    test_split: test.parquet
+    fields: data.npy
+    geom_centres: geom0.npy
+    geom_nodes: origingeom.npy
+  n_cases: 28856
+  n_wings: 4239
+  official_split:
+    train_cases: 25985
+    train_wings: 3815
+    test_cases: 2871
+    test_wings: 424
+  calibration:
+    fraction_of_training_wings: 0.10
+    seed: 0
+  flow:
+    mach_range: [0.75, 0.90]
+    aoa_range_deg: [2.0, 12.0]
+    reynolds: 2.0e+7
+    temperature_K: 300.0
+    solver: ADflow RANS
+    cells_approx: 3.6e+6
+geometry:
+  n_params: 38
+  param_names: [SA, DA, DA_kink, AR, TR, kink, rootadj,
+                rtcs_0, rtcs_1, rtcs_2,
+                cambers_0, cambers_1, cambers_2,
+                twists_0, twists_1, twists_2, twists_3,
+                cst_u_0, cst_u_1, cst_u_2, cst_u_3, cst_u_4, cst_u_5, cst_u_6, cst_u_7, cst_u_8, cst_u_9,
+                cst_l_0, cst_l_1, cst_l_2, cst_l_3, cst_l_4, cst_l_5, cst_l_6, cst_l_7, cst_l_8, cst_l_9,
+                tcroot]
+  real_ranges:
+    SA: [25.0, 40.0]
+    AR: [8.0, 11.0]
+    TR: [0.15, 0.40]
+    kink: [0.36, 0.42]
+    tcroot: [0.14, 0.17]
+  surface_nodes: [129, 257]      # origingeom.npy, span x chord
+  surface_cells: [128, 256]      # geom0.npy / data.npy, span x chord
+  builder:
+    cst_order: 9                 # 10 Bernstein coefficients per surface
+    cst_class_n1: 0.5
+    cst_class_n2: 1.0
+    chord_points_per_surface: 129
+    chord_distribution: clustcos  # a0 = 0.0079, a1 = 0.96 (cfdpost.modeling.dist_clustcos)
+    clustcos_a0: 0.0079
+    clustcos_a1: 0.96
+    te_thickness: 0.004          # cfdpost BasicParaWing.reconstruct_surface_grids default
+    fuselage_fraction: 0.10      # exposed wing starts at 10% half span
+    root_twist_deg: 0.0          # twist is zero at the root (SuperWing paper, Sec. 2)
+  wing_box:
+    front_spar_xc: 0.15
+    rear_spar_xc: 0.65
+    stations: [root, kink, mid_outer, tip]
+fields:
+  cp_channel: 0
+  cp_scale: 1.0
+  reduced_shape: [64, 128]       # span x chord, 2 x 2 area-weighted cell agglomeration
+  reduced_dtype: float16         # Cp; geometry is kept float32 (see STATUS, Task 1)
+encoder:
+  patches: 8                     # 4 spanwise bands x 2 surfaces
+  latent_dim: 128
+  sigreg_projections: 64
+trust_region:
+  dm2_threshold: 168.13          # chi2(128, 0.99), Ledoit-Wolf whitened latents
+surrogate_targets:
+  cl_mae: 0.010
+  cd_mae_counts: 8.0
+  cm_mae: 0.010
+  cp_rmse: 0.05
+decoder_targets:
+  per_group_r2: 0.95
+  surface_rmse_root_chord: 2.0e-3
+gates:
+  G2_builder_rmse_root_chord: 1.0e-3
+  G2_n_wings: 50
+  G2_pool: first 200 wings of origingeom.npy
+conformal:
+  alpha: 0.05
+  mondrian: mach tertiles of training data
+  grouping: wing
+design:
+  mach_targets: [0.78, 0.82, 0.85]
+  mach_band_halfwidth: 0.01      # cases with |M - M*| <= 0.01 define the CL percentiles
+  cl_percentiles: [40, 60]
+  cl_source: cl_solver           # index.npy column 6
+  cl_population: fit             # official train wings minus calibration wings
+  constraints:
+    tcroot_min: 0.145
+    ixx_root_min_percentile: 25
+    abs_cm_max_percentile: 95
+    dm2_max: 168.13
+  cohorts: [guided_t40, guided_s4, knn, unguided, meanguided]
+  seeds: [0, 1, 2]
+cfd:
+  solver: SU2 (conda-forge)
+  su2_version: "8.5.0"            # conda-forge su2 8.5.0 (recipe: github.com/conda-forge/su2-feedstock)
+  convergence:
+    residual_drop_orders: 5
+    cl_change: 1.0e-4
+    window_iters: 200
+    residual_field: "rms[Rho]"     # log10 RMS density residual; drop = first logged value - last value
+  runner:
+    segment_iters: {euler: 500, rans: 1000}    # SU2 is restarted from its own solution every segment
+    max_iters: {euler: 8000, rans: 30000}      # iteration cap per case; a capped run is "unconverged"
+    job_budget_minutes: 330                    # GitHub job limit is 360 min; state is saved before it
+    max_segments_jobs: 4                       # chained jobs per case (about 22 h wall time)
+  validation:
+    oneram6:
+      mach: 0.8395
+      aoa_deg: 3.06
+      reynolds: 11.72e+6
+      reynolds_length: 0.64607
+      temperature_K: 288.15
+      stations_eta: [0.20, 0.44, 0.65, 0.80, 0.90, 0.95, 0.99]
+      shock_check_eta: [0.44, 0.65, 0.80]     # stations 2, 3, 4 of NPARC Table 3, fixed before any run
+      shock_tol_chord: 0.03
+      shock_definition: last downstream crossing of the sonic Cp* on the upper surface
+      exp_source: https://www.grc.nasa.gov/WWW/wind/valid/m6wing/m6wing.html
+      exp_files: "cp{k}{u,l}.ex, k = 1..7"
+      meshes_source: https://github.com/su2code/TestCases
+    rae2822_case6:
+      mach: 0.729                 # corrected free-stream conditions of case 6 (AGARD AR-138)
+      aoa_deg: 2.31
+      reynolds: 6.5e+6
+      temperature_K: 288.15
+      cl_reference: 0.743         # AGARD AR-138 case 6, the value named in PLAN Task 2
+      cl_tol: 0.03
+      exp_cp_url: https://www.grc.nasa.gov/WWW/wind/valid/raetaf/raetaf01/cp.exp.gen
+      exp_source: https://www.grc.nasa.gov/WWW/wind/valid/raetaf/raetaf.html
+  superwing_holdout:
+    row_range: [0, 200]           # rows 0 <= r < 200: first 200 rows of configs.dat / origingeom.npy
+    split: test                   # official SuperWing test split
+    seed: 0                       # numpy default_rng(0).choice over the eligible rows
+    mach_target: 0.82             # case of that wing with Mach closest to 0.82 (ties: lower AoA)
+    symmetry_plane: root section  # SuperWing paper: root boundary is a symmetry plane
+    farfield_radius_root_chords: 50
+  mesh3d_euler:
+    tool: gmsh (OpenCASCADE loft through the data surface sections)
+    loft_span_stride: 4           # every 4th span station plus root, kink and tip
+    size_min: 0.003               # root-chord units
+    size_wing_max: 0.03
+    size_far: 5.0
+    curvature_points: 30          # gmsh Mesh.MeshSizeFromCurvature
+  mesh2d_ogrid:
+    n_around: 320
+    n_normal: 128
+    farfield_radius_chords: 100
+    yplus: 1.0
+  gates:
+    G1:
+      rans_max_hours: 4.0
+      euler_max_hours: 1.0
+      cl_tol: 0.03
+      cd_tol_counts: 25.0
+      rans_projection_cells: [1.0e+6, 3.6e+6]   # decision uses the first (smallest plausible) value
+    G3:
+      max_hours_t4: 8.0
+      min_epochs_in_budget: 10      # fewer full epochs than this in 8 h: cannot reach the reported accuracy
+      cp_rel_l2_reference: 0.0644   # AeroJEPA paper, SuperWing test split, Cp rel L2 (recipe README)
+      cp_rel_l2_factor: 2.0
+checks:
+  task1:
+    reader_n_cases: 100
+    cl_reduction_n_cases: 200
+    cl_reduction_rel_tol: 0.02
+    cl_reduction_min_abs_cl: 0.1  # relative error is evaluated where |CL| >= 0.1; abs error reported for all
+    seed: 0
+seeds: [0, 1, 2]
