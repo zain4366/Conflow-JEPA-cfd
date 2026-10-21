@@ -1,0 +1,132 @@
+{
+ "case": "m6_rans_hexa",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "cl_change",
+  "n_iter": 4000,
+  "residual_drop_orders": 2.6160571569999997,
+  "cl_change_window": 6.299009999999328e-05,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 4000,
+ "iters_total": 4000,
+ "wall_s_total": 421.1612992286682,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 105.77919864654541,
+   "returncode": 0,
+   "restart": false
+  },
+  {
+   "k": 1,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 108.92860150337219,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 2,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 103.72052526473999,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 3,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 102.73297381401062,
+   "returncode": 0,
+   "restart": true
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.1012987165,
+  "seconds_per_iter_mean": 0.10257906660829144,
+  "startup_s_median": 2.7139165381914125,
+  "n_segments": 4
+ },
+ "prepared": {
+  "kind": "su2_testcase",
+  "downloads": {
+   "mesh_ONERAM6_turb_hexa_43008.su2": {
+    "url": "https://raw.githubusercontent.com/su2code/TestCases/790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f/rans/oneram6/mesh_ONERAM6_turb_hexa_43008.su2",
+    "sha256": "08631f6bfd443fcbd3d9432f9dc3824c43cae3076bb477f6073c71e3e991bc1b",
+    "bytes": 5959428,
+    "retrieved_utc": "2026-10-21T21:22:06Z"
+   }
+  },
+  "mesh_file": "mesh_ONERAM6_turb_hexa_43008.su2",
+  "mesh_sha256": "08631f6bfd443fcbd3d9432f9dc3824c43cae3076bb477f6073c71e3e991bc1b",
+  "mesh_bytes": 5959428,
+  "mesh_cells": 43008,
+  "prepare_s": 1.1803452968597412
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000293"
+ },
+ "case_definition": {
+  "kind": "su2_testcase",
+  "solver": "rans_sa",
+  "mesh": {
+   "repo": "su2code/TestCases",
+   "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+   "path": "rans/oneram6/mesh_ONERAM6_turb_hexa_43008.su2"
+  },
+  "flow": {
+   "mach": 0.8395,
+   "aoa": 3.06,
+   "ref_area": 0.0,
+   "ref_length": 0.64607,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ],
+   "reynolds": 11720000.0,
+   "reynolds_length": 0.64607,
+   "temperature": 288.15
+  },
+  "markers": {
+   "wall": "WING",
+   "far": "FARFIELD",
+   "sym": "SYMMETRY"
+  },
+  "numerics": {
+   "scheme": "ROE",
+   "multigrid": 0,
+   "cfl": 4.0
+  },
+  "note": "ONERA M6 RANS-SA, SU2 TestCases rans/oneram6 (43,008 hexahedra)",
+  "name": "m6_rans_hexa"
+ },
+ "runner_commit": "2d0fc268f9885bdf5bcb5e6a5280dd4506534072",
+ "run_id": "39678072491",
+ "jobs": [
+  {
+   "job_start": 1792617682.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T21:29:08Z"
+}

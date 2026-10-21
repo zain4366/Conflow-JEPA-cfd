@@ -1,0 +1,125 @@
+{
+ "case": "rae2822_c6_ogrid",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 2000,
+  "residual_drop_orders": 6.890012721,
+  "cl_change_window": 6.857000000026758e-07,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 2000,
+ "iters_total": 2000,
+ "wall_s_total": 218.52568793296814,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 133.05839943885803,
+   "returncode": 0,
+   "restart": false
+  },
+  {
+   "k": 1,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 85.46728849411011,
+   "returncode": 0,
+   "restart": true
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.121969376,
+  "seconds_per_iter_mean": 0.10682709455879398,
+  "startup_s_median": 2.4221607929840587,
+  "n_segments": 2
+ },
+ "prepared": {
+  "kind": "rae_ogrid",
+  "downloads": {
+   "mesh_RAE2822_turb.su2": {
+    "url": "https://raw.githubusercontent.com/su2code/TestCases/790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f/rans/rae2822/mesh_RAE2822_turb.su2",
+    "sha256": "60fc63b5cab8eb1aeb3a3fe661a0f0c6a210fadb907f031f02efdb054883f11f",
+    "bytes": 1101375,
+    "retrieved_utc": "2026-10-21T21:22:07Z"
+   }
+  },
+  "mesh_file": "ogrid.su2",
+  "ogrid": {
+   "n_around": 320,
+   "n_normal": 128,
+   "farfield_radius_chords": 100,
+   "yplus": 1.0,
+   "h1": 4.14674122046488e-06,
+   "n_wall_input": 192,
+   "min_cell_area": 2.2549474788769678e-10
+  },
+  "mesh_sha256": "9e95589886e26ca6e74e908f38bbc3f8d101961f6971647d22e3e07d4570af69",
+  "mesh_bytes": 3346665,
+  "mesh_cells": 40960,
+  "prepare_s": 0.600696325302124
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000292"
+ },
+ "case_definition": {
+  "kind": "rae_ogrid",
+  "solver": "rans_sa",
+  "mesh": {
+   "repo": "su2code/TestCases",
+   "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+   "path": "rans/rae2822/mesh_RAE2822_turb.su2",
+   "airfoil_marker": "AIRFOIL"
+  },
+  "flow": {
+   "mach": 0.729,
+   "aoa": 2.31,
+   "ref_area": 1.0,
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ],
+   "reynolds": 6500000.0,
+   "reynolds_length": 1.0,
+   "temperature": 288.15
+  },
+  "markers": {
+   "wall": "airfoil",
+   "far": "farfield"
+  },
+  "numerics": {
+   "scheme": "JST",
+   "multigrid": 3,
+   "cfl": 10.0
+  },
+  "note": "RAE 2822 case 6 on the ConFlow O-grid (airfoil nodes of the TestCases mesh); checks the 2D mesher",
+  "name": "rae2822_c6_ogrid"
+ },
+ "runner_commit": "2d0fc268f9885bdf5bcb5e6a5280dd4506534072",
+ "run_id": "39678072491",
+ "jobs": [
+  {
+   "job_start": 1792617682.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T21:25:46Z"
+}

@@ -1,0 +1,107 @@
+{
+ "case": "rae2822_c6",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 1000,
+  "residual_drop_orders": 5.937126772999999,
+  "cl_change_window": 1.1765900000071383e-05,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 1000,
+ "iters_total": 1000,
+ "wall_s_total": 28.626724004745483,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 28.626724004745483,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.026003931,
+  "seconds_per_iter_mean": 0.026663239860301505,
+  "startup_s_median": 1.957738004745483,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "su2_testcase",
+  "downloads": {
+   "mesh_RAE2822_turb.su2": {
+    "url": "https://raw.githubusercontent.com/su2code/TestCases/790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f/rans/rae2822/mesh_RAE2822_turb.su2",
+    "sha256": "60fc63b5cab8eb1aeb3a3fe661a0f0c6a210fadb907f031f02efdb054883f11f",
+    "bytes": 1101375,
+    "retrieved_utc": "2026-10-21T21:22:05Z"
+   }
+  },
+  "mesh_file": "mesh_RAE2822_turb.su2",
+  "mesh_sha256": "60fc63b5cab8eb1aeb3a3fe661a0f0c6a210fadb907f031f02efdb054883f11f",
+  "mesh_bytes": 1101375,
+  "mesh_cells": 22842,
+  "prepare_s": 0.5027685165405273
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+  "mem_total": "16367524 kB",
+  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000295"
+ },
+ "case_definition": {
+  "kind": "su2_testcase",
+  "solver": "rans_sa",
+  "mesh": {
+   "repo": "su2code/TestCases",
+   "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+   "path": "rans/rae2822/mesh_RAE2822_turb.su2"
+  },
+  "flow": {
+   "mach": 0.729,
+   "aoa": 2.31,
+   "ref_area": 1.0,
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ],
+   "reynolds": 6500000.0,
+   "reynolds_length": 1.0,
+   "temperature": 288.15
+  },
+  "markers": {
+   "wall": "AIRFOIL",
+   "far": "FARFIELD"
+  },
+  "numerics": {
+   "scheme": "JST",
+   "multigrid": 3,
+   "cfl": 10.0
+  },
+  "note": "RAE 2822 case 6, mesh and numerics of SU2 TestCases rans/rae2822/turb_SA_RAE2822.cfg",
+  "name": "rae2822_c6"
+ },
+ "runner_commit": "2d0fc268f9885bdf5bcb5e6a5280dd4506534072",
+ "run_id": "39678072491",
+ "jobs": [
+  {
+   "job_start": 1792617682.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T21:22:34Z"
+}

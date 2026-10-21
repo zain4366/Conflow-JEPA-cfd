@@ -1,0 +1,100 @@
+{
+ "case": "m6_euler",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 500,
+  "residual_drop_orders": 7.919546539999999,
+  "cl_change_window": 1.9279999996513197e-07,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 73.58847284317017,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 500,
+   "iters_logged": 500,
+   "wall_s": 73.58847284317017,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.139654124,
+  "seconds_per_iter_mean": 0.14117204592121213,
+  "startup_s_median": 2.792478940170156,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "su2_testcase",
+  "downloads": {
+   "mesh_ONERAM6_inv_ffd.su2": {
+    "url": "https://raw.githubusercontent.com/su2code/TestCases/790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f/euler/oneram6/mesh_ONERAM6_inv_ffd.su2",
+    "sha256": "059f0cb979e2426cc64f8bbc320129e16cd49fb291744499b0545bbd4f68bcf4",
+    "bytes": 8240939,
+    "retrieved_utc": "2026-10-21T21:22:08Z"
+   }
+  },
+  "mesh_file": "mesh_ONERAM6_inv_ffd.su2",
+  "mesh_sha256": "059f0cb979e2426cc64f8bbc320129e16cd49fb291744499b0545bbd4f68bcf4",
+  "mesh_bytes": 8240939,
+  "mesh_cells": 140244,
+  "prepare_s": 1.4526095390319824
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000290"
+ },
+ "case_definition": {
+  "kind": "su2_testcase",
+  "solver": "euler",
+  "mesh": {
+   "repo": "su2code/TestCases",
+   "commit": "790c80ec5b543487b5f8ecf8bb0f0e4d2cc67f3f",
+   "path": "euler/oneram6/mesh_ONERAM6_inv_ffd.su2"
+  },
+  "flow": {
+   "mach": 0.8395,
+   "aoa": 3.06,
+   "ref_area": 0.0,
+   "ref_length": 0.64607,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "WING",
+   "far": "FARFIELD",
+   "sym": "SYMMETRY"
+  },
+  "note": "ONERA M6, NPARC test 2308 conditions; mesh and numerics of SU2 TestCases euler/oneram6",
+  "name": "m6_euler"
+ },
+ "runner_commit": "2d0fc268f9885bdf5bcb5e6a5280dd4506534072",
+ "run_id": "39678072491",
+ "jobs": [
+  {
+   "job_start": 1792617682.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T21:23:23Z"
+}

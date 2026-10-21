@@ -1,0 +1,861 @@
+<HTML>
+
+<HEAD>
+<TITLE> RAE 2822 Transonic Airfoil: Study #1 </TITLE>
+<style type="text/css">
+<!--
+.style1 {color: #800000;
+         text-decoration: underline; }
+.style2 {font-weight: bold;}
+.style3 {color: #800000;}
+.style4 {font-face:Courier New;
+         font-size: smaller;}
+.style5 {color: #008B8B;}
+-->
+</style>
+
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" 
+  VLINK="#551A8B" ALINK="#FF0000">
+
+<!---------------------------------------------------------------------->
+<!...Heading Information...>
+
+<B>NPARC Alliance Validation Archive</B><BR>
+<B><A HREF="../../homepage.html">
+ Validation Home</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B><A HREF="../../archive.html">
+ Archive</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B><A HREF="../raetaf.html">
+  RAE 2822 Transonic Airfoil</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B> Study #1 </B>
+
+<HR>
+
+<!---------------------------------------------------------------------->
+<!...Title...>
+
+<H2 align="center" class="style3"> RAE 2822 Transonic Airfoil: Study #1 </H2>
+
+
+<!---------------------------------------------------------------------->
+<!...Image...>
+
+<P align="center">
+<IMG SRC="mach.jpg" BORDER=1 alt="Figure 1 is described in the surrounding text"><BR>
+  
+    <B>Figure 1. The Mach number contours for the RAE 2822 
+       transonic airfoil.</B>  
+</P>
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Introduction</H3>
+
+<P> This study is an example study demonstrating the use of WIND and
+accompanying programs for computing two-dimensional turbulent,
+transonic flows about an airfoil.  Further, this study is a re-baseline
+of the documented validation case for the NPARC code.  Those validation
+results can be found at the <a
+href="http://info.arnold.af.mil/nparc/archive/example/2dairfoil/" >
+NPARC Validation Web page</a>. The pressure coefficients obtained from
+the computation from WIND are compared to the values obtained by RAE as
+reported in Ref. 1.  The values obtained from the NPARC validation
+study are also included in the comparison.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Download tar File</H3>
+
+<P> All of the archive files of this validation case are available in 
+the Unix compressed tar file 
+<A HREF="raetaf01.tar.Z"> raetaf01.tar.Z</A>.
+The files can then be accessed by the commands:</P>
+
+<BLOCKQUOTE> 
+<B>uncompress <A HREF="raetaf01.tar.Z"> raetaf01.tar.Z</A></B><BR>
+<B>tar -xvof raetaf01.tar</B><BR>
+</BLOCKQUOTE>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Grid</H3>
+
+<P> The grid is a single-block, two-dimensional C-grid with dimensions
+of 369 x 65.   It is contained in a PLOT3D grid file named <A
+HREF="raetaf.x.fmt">raetaf.x.fmt</A> (formatted, single-zone, 2D,
+whole).  The airfoil surface and wake are located at the J1 boundary.
+The I-coordinate starts at the lower downstream boundary, intersects
+the trailing edge at I33, proceeds along the bottom of the airfoil,
+around the leading edge, downstream along the top of the airfoil,
+intersects the trailing edge again at I337, and continues to the
+outflow boundary.  The JMAX grid line is the farfield boundary of the
+flow domain. The grid is non-dimensionalized by the chord length.
+Since WIND requires dimensional quantities and assumes English
+Engineering units, the airfoil grid is assumed to have a chord of 1.0
+ft.</P>
+
+<P> The CFCNVT utility is used to convert the PLOT3D grid file to the 
+common grid file format (.cgd) for WIND. This is done using the command:</P>
+
+<BLOCKQUOTE>
+  <B>cfcnvt &lt; <A HREF="cfcnvt.x.com">cfcnvt.x.com</A></B>
+</BLOCKQUOTE>
+
+<P> where the file <A HREF="cfcnvt.x.com">cfcnvt.x.com</A> is a command
+input file. A common grid file named 
+<A HREF="raetaf.cgd">raetaf.cgd</A> is created.  For simulating planar
+flows in WIND, the three-dimensional flow equations are applied.  This
+requires that the grid plane be in the z = 1.0 plane.  The CFCNVT
+utility creates the proper three-dimensional grid with KMAX = 1.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Initial Conditions</H3>
+
+<P> This study assumes freestream flow conditions as summarized in
+Table 1 below.  These conditions correspond to a Reynolds number of 6.5
+million based on the chord length of 1.0 ft.  The static pressure was
+computed based on the specified Reynolds number and Mach number and an
+assumed value of static temperature.</P>
+
+<TABLE BORDER CELLPADDING=7 align="center">
+<CAPTION><B>Table 1. Freestream conditions.</B></CAPTION>
+
+<TR>
+<TH scope="col">Mach number</TH>
+<TH>Static Pressure (psia)</TH>
+<TH>Temperature(R)</TH>
+<TH>Angle-of-Attack (deg)</TH>
+</TR>
+
+<TR>
+<TD scope="row"> 0.729 </TD>
+<TD> 15.80734 </TD>
+<TD> 460.0 </TD>
+<TD> 2.31 </TD>
+</TR>
+</TABLE>
+
+<P> The computational flow field is initialized with uniform flow
+corresponding to these freestream conditions.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Boundary Conditions</H3>
+
+<P> The boundary conditions must now be specified for the grid and this
+is done with the GMAN utility. First, the boundary condition types are
+summarized. A <B>VISCOUS WALL</B> boundary condition is applied at the
+J1 boundary at the airfoil surface, which extends from I33 to I337.
+The J1 boundary from I1 to I32 is coupled to the J1 boundary from I338
+to IMAX (I369) to form the wake region. A <B>FREESTREAM</B> boundary
+condition is applied at the JMAX boundary, which should all be subsonic
+inflow at the freestream conditions.  The I1 and IMAX boundaries are
+specified as <B>OUTFLOW</B> boundaries.  The <B>OUTFLOW</B> allows 
+the static pressure to be directly specified and is
+assumed to be equal to the freestream pressure.</P>
+
+<P> The procedure for setting the boundary conditions using GMAN 
+with the graphics interface is as follows:</P>
+
+<OL>
+
+<LI> Start GMAN.</LI>
+
+<BLOCKQUOTE><B>
+  gman
+</B></BLOCKQUOTE>
+
+<LI> Select the version of GMAN by accepting the default of 
+<B>1) gman optimized version</B>.</LI>
+
+<LI> Read in the common grid file by typing at the GMAN prompt.</LI>
+
+<BLOCKQUOTE>
+  <B>file raetaf.cgd</B>
+</BLOCKQUOTE>
+
+<LI> Specify that units are feet / slugs / seconds.</LI>
+
+<BLOCKQUOTE>
+  <B>units fss</B>
+</BLOCKQUOTE>
+
+<LI> Switch to graphics mode.</LI>
+
+<BLOCKQUOTE>
+  <B>swi</B>
+</BLOCKQUOTE>
+
+<LI> Display the grid.</LI>
+
+<BLOCKQUOTE>
+  Pick <B>SHOW </B><I>(upper right panel)</I><BR>
+  Pick <B>SHOW SURFACES</B><BR>
+  Pick <B>PICK K-PLANE</B>
+</BLOCKQUOTE>
+
+<P> At this point the grid will be displayed since there is only one grid
+plane, K=1. Moving the mouse so that the cross-cursor is near the
+upper-right most grid point and clicking the left mouse button will
+cause the coordinates of that point to be displayed in the middle right
+panel. It should indicate that the coordinates of point (369,65,1) are
+x = 27.0 ft, y = 24.2635 ft, and z = 1.0 ft. Note that the units are
+feet, which was desired from the <B>units fss</B> command. Also note
+that CFCNVT had converted the initial two-dimensional grid to a
+three-dimensional grid with z = 1.0 ft, which is required by WIND.</P>
+
+<LI> Specify the boundary conditions.</LI>
+
+<BLOCKQUOTE>
+  Pick <B>BOUNDARY COND.</B> <I>(left panel)</I>
+</BLOCKQUOTE>
+
+<P> GMAN defaults to zone 1 since it is the only zone. The sequence is
+to select the boundary and specify the boundary condition type on that
+boundary.  The initial boundary condition type is <B>UNDEFINED</B>.
+Since there is only one zone, GMAN defaults to picking zone 1. It is now
+waiting for the boundary to be specified.</P>
+
+<BLOCKQUOTE>
+  Pick <B>I1</B> <I>(lower left panel)</I>
+</BLOCKQUOTE>
+
+<P> At this point, the I1 grid plane is displayed. Since this case is
+planar, a line is displayed. To select the boundary condition type,
+execute the following menu choices:</P>
+
+<BLOCKQUOTE>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>CHANGE ALL</B><BR>
+  Pick <B>OUTFLOW</B>
+</BLOCKQUOTE>
+
+<P> At this point, the bottom panel should contain the text &quot;65 points were
+changed&quot;. The boundary condition specification is now saved for this
+boundary by the following menu choices:</P>
+
+<BLOCKQUOTE>
+  Pick <B>BOUNDARY COND.</B> <I>(top left panel)</I><BR>
+  Pick <B>YES-UPDATE FILE</B> <I>(middle left panel)</I>
+</BLOCKQUOTE>
+
+<P> The common grid file <B>raetaf.cgd</B> is modified to include this
+boundary condition specification.</P>
+
+<P> The boundary condition specification can be checked by selecting:</P>
+
+<BLOCKQUOTE>
+  Pick <B>IDENTIFY PNTS.</B> <I>(left panel)</I><BR>
+  Pick <B>OUTFLOW</B>
+</BLOCKQUOTE>
+
+<P> The individual grid points will show up in color to indicate that those
+points are specified as <B>OUTFLOW</B>.
+
+<P> The boundary conditions for the IMAX boundary are set in a similar
+manner. For the IMAX boundary,</P>
+
+<BLOCKQUOTE>
+  Pick <B>BOUNDARY COND.</B> <I>(top left panel)</I><BR>
+  Pick <B>PICK ZONE/BNDY</B><BR>
+  Pick <B>1</B> <I>(from zone list)</I><BR>
+  Pick <B>IMAX</B><BR>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>CHANGE ALL</B><BR>
+  Pick <B>OUTFLOW</B><BR>
+  Pick <B>BOUNDARY COND.</B><BR>
+  Pick <B>YES-UPDATE FILE</B>
+</BLOCKQUOTE>
+
+<P> The J1 boundary contains both the wake region and the airfoil surface. 
+First, select the J1 boundary,</P>
+
+<BLOCKQUOTE>
+  Pick <B>BOUNDARY COND.</B> <I>(top left panel)</I><BR>
+  Pick <B>PICK ZONE/BNDY</B><BR>
+  Pick <B>1</B> <I>(from zone list)</I><BR>
+  Pick <B>J1</B>
+</BLOCKQUOTE>
+
+<P> Now the boundary conditions will be specified for the wake region on 
+the J1 boundary from I1 to I32, which will be coupled to the J1 boundary 
+from I338 to I369. First, define a work subarea for I1 to I32,</P>
+
+<BLOCKQUOTE>
+  Pick <B>Work Subarea</B> <I>(lower right box)</I>
+</BLOCKQUOTE>
+
+<P> A prompt will appear is the bottom center box asking for start and
+end i indices for the subarea.</P>
+
+<BLOCKQUOTE> 
+  Enter the first index, <B>1</B> <I>[ret]</I><BR>
+  Enter the second index, <B>32</B> <I>[ret]</I>
+</BLOCKQUOTE>
+
+<P> In the lower right panel, it should indicate that the work area is
+now (1) - (32). The boundary conditions on these points will now be
+specified as being coupled to the J1 boundary,</P>
+
+<BLOCKQUOTE>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>COUPLE</B><BR>
+  Pick <B>SEL OTHER BND</B><BR>
+  Pick <B>1</B> <I>(from zone list)</I><BR>
+  Pick <B>J1</B><BR>
+  Pick <B>COUPLE</B><BR>
+  Pick <B>BOUNDARY COND.</B><BR>
+  Pick <B>YES-UPDATE FILE</B>
+</BLOCKQUOTE>
+
+<P> The bottom panel will indicate that &quot;32 undefined points were changed&quot; 
+and that &quot;Boundary conditions have been updated&quot;.</P>
+
+<P> Now the subarea is defined for the airfoil surface and the boundary 
+conditions are specified as viscous walls,</P>
+
+<BLOCKQUOTE>
+  Pick <B>Work Subarea</B> <I>(lower right box)</I><BR>
+  Enter the first index, <B>33</B> <I>[ret]</I><BR>
+  Enter the second index, <B>337</B> <I>[ret]</I>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>CHANGE ALL</B><BR>
+  Pick <B>VISCOUS WALL</B><BR>
+  Pick <B>BOUNDARY COND.</B><BR>
+  Pick <B>YES-UPDATE FILE</B>
+</BLOCKQUOTE>
+
+<P> The bottom panel will indicate that &quot;305 undefined points were changed&quot; 
+and that &quot;Boundary conditions have been updated&quot;.</P>
+
+<P> Now the subarea is defined for the wake region from I338 to I369 which is 
+coupled to the J1 boundary,</P>
+
+<BLOCKQUOTE>
+  Pick <B>Work Subarea</B> <I>(lower right box)</I><BR>
+  Enter the first index, <B>338</B> <I>[ret]</I><BR>
+  Enter the second index, <B>369</B> <I>[ret]</I>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>COUPLE</B><BR>
+  Pick <B>SEL OTHER BND</B><BR>
+  Pick <B>1</B> <I>(from zone list)</I><BR>
+  Pick <B>J1</B><BR>
+  Pick <B>COUPLE</B><BR>
+  Pick <B>BOUNDARY COND.</B><BR>
+  Pick <B>YES-UPDATE FILE</B>
+</BLOCKQUOTE>
+
+<P> The bottom panel will indicate that &quot;32 undefined points were changed&quot; 
+and that &quot;Boundary conditions have been updated&quot;. </P>
+
+<P> The boundary condition types for the J1 boundary can be checked,</P>
+
+<BLOCKQUOTE>
+  Pick <B>IDENTIFY PNTS.</B> <I>(left panel)</I><BR>
+  Pick <B>VISCOUS WALL</B><BR>
+  Pick <B>ZONE  1  J1</B>
+</BLOCKQUOTE>
+
+<P> The &quot;ZONE  1  J1&quot; indicates that the boundary grid points are
+coupled to boundary J1 of zone 1.  Note that all we had to specify was
+which boundary the grid points are coupled and not the specific grid
+points.  This is automatically determined within GMAN.</P>
+
+<P> The boundary conditions for the JMAX boundary are now specified 
+in a similar manner as above,</P>
+
+<BLOCKQUOTE>
+  Pick <B>BOUNDARY COND.</B> <I>(top left panel)</I><BR>
+  Pick <B>PICK ZONE/BNDY</B><BR>
+  Pick <B>1</B> <I>(from zone list)</I><BR>
+  Pick <B>JMAX</B><BR>
+  Pick <B>MODIFY BNDY</B><BR>
+  Pick <B>CHANGE ALL</B><BR>
+  Pick <B>FREESTREAM</B><BR>
+  Pick <B>BOUNDARY COND.</B><BR>
+  Pick <B>YES-UPDATE FILE</B>
+</BLOCKQUOTE>
+
+<P> While computationally there exists K1 and KMAX boundaries, which 
+are both K1, they do not need to be specified for planar problems.</P>
+
+<LI> Exit GMAN.</LI>
+
+<BLOCKQUOTE>
+  Pick <B>TOP</B> <I>(top left panel)</I><BR>
+  Pick <B>END</B><BR>
+  Pick <B>YES-TERMINATE</B>
+</BLOCKQUOTE>
+
+<P> The common grid file <B>raetaf.cgd</B> is now ready.</P>
+
+</OL>
+
+<P> As GMAN operates, a journal file <B>gman.jou</B> is created which
+can later be used as a command file to re-run GMAN. Here this file has
+been renamed <A HREF="gman.com">gman.com</A> and GMAN can be re-run as:</P>
+
+<BLOCKQUOTE>
+  <B>gman &lt;</B> <A HREF="gman.com">gman.com</A>
+</BLOCKQUOTE>
+
+<P> Creating a command file from scratch represents an alternative to
+the graphical approach within GMAN.  Further, it can be easily modified 
+when the grid changes, such as for grid refinement studies. </P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Computation Strategy</H3>
+
+<P> The computation is performed using the time-marching capabilities
+of WIND to march to a steady-state (time asymptotic) solution.  Local 
+time stepping is used at each iteration.  The time-marching is performed 
+until convergence criteria is achieved.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Input Parameters and Files</H3>
+
+<P> The input data file for WIND is <A HREF="raetaf.dat">raetaf.dat</A>.  
+The <B>freestream</B> keyword
+indicates that the static freestream flow conditions are specified as
+Mach number, pressure (psia), temperature (R), angle-of-attack
+(degrees), and angle-of-sideslip (degrees).  The <B>downstream pressure</B> 
+keyword indicates that the freestream static pressure is to be used at 
+the OUTFLOW boundaries.  The <B>turbulence model</B> keyword 
+indicates that the Spalart-Allmaras turbulence model is to be used.  The 
+<B>implicit boundary</B> keyword indicates that implicit boundary 
+conditions are to be used on the viscous walls.  The <B>dq limiter</B> 
+keyword indicates that the change is solution is limited over an 
+iterations.  The 
+<B>loads</B> keyword indicates that the lift on the airfoil is to be 
+integrated every 10 iterations and displayed in the list file.  This 
+will be used to evaluate the convergence of the solution. The <B>converge 
+order</B> keyword indicates that the computation will stop if the L2 
+norm of the solution drops by 9 orders-of-magnitude.  The <B>cycles</B> 
+keyword indicates that 500 cycles will be run.  The <B>iterations per 
+cycle</B> keyword indicates that 10 iterations will be run per cycle with 
+a print frequency of 5 iterations. 
+The <B>cfl</B> keyword indicates that a CFL number of 5.0 will be used. 
+By default, WIND uses CFL number to determine the local time-step size.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Computation</H3>
+
+<P> The WIND solver is run by entering:</P>
+
+<BLOCKQUOTE>
+  <B>wind -runinplace</B>
+</BLOCKQUOTE>
+
+<P> This runs the <B>wind</B> script which sets up the problem for solver. 
+The <B>runinplace</B> option indicates that WIND is to be run in the 
+current directory.  Further details and options for the <B>wind</B> script 
+can be found in the WIND documentation 
+(<A HREF="http://www.grc.nasa.gov/WWW/winddocs/user/scripts.html#scripts:scripts">wind script</A>). 
+A brief description of script options can be listed by typing:</P>
+
+<BLOCKQUOTE>
+  <B>wind -help</B>
+</BLOCKQUOTE>
+
+<P> Some initial interactive prompts ask for information to set up the
+computation.  First, enter a return to run the latest version.</P>
+
+<BLOCKQUOTE><PRE>
+
+Running command line version of WIND.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+***** WIND Run Script *****
+
+Current wind settings are:
+
+--Wind test mode set to NODEBUG
+--Wind debugger set to DEFAULT
+--Wind run que set to PROMPT
+--Wind run in place mode is set to NO
+--Wind multi-processor mode set to NO
+--Wind run directory set to PROMPT
+--Wind bin directory set to /net/zargon/usr2/wind-1.0/wind
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Select the desired version
+&nbsp;
+&nbsp; 0: Exit wind
+&nbsp; 1: alpha version
+&nbsp; 2: Version 2.0
+&nbsp; 3: Version 3.0
+&nbsp; 4: Version 4.0
+&nbsp; 5: Version 5.0
+
+
+Enter number or name of executable.......[5]: 5
+</PRE>
+</BLOCKQUOTE>
+
+<P> The next question will ask for the name of the input data file.
+Enter the name without the &quot;dat&quot; file extension. So, for this case,
+enter:</P>
+
+<BLOCKQUOTE>
+  <B>raetaf</B>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE><PRE>
+Enter number or name of executable.......[1]: 1
+Basic input data................(*.dat): raetaf
+</PRE>
+</BLOCKQUOTE>
+
+<P> The next few questions ask about &quot;Output data&quot;, &quot;Mesh file&quot;, and
+&quot;Flow data file&quot; file names. Entering a carriage return will select the
+default names. A common flow data file <B>raetaf.cfl</B> does not
+currently exists, so WIND initialize the flow from the freestream
+conditions and creates the new flow data file.</P>
+
+<BLOCKQUOTE>
+<PRE>
+Output data.............(*.lis,&lt;CR&gt;=raetaf):&nbsp;
+Mesh file...............(*.cgd,&lt;CR&gt;=raetaf):&nbsp;
+Flow data file..........(*.cfl,&lt;CR&gt;=raetaf):&nbsp;
+&nbsp;
+***********************************************************
+raetaf.cfl does not exist, a fresh start will be performed.
+***********************************************************
+</PRE>
+</BLOCKQUOTE>
+
+<P> The next question allows a choice between running the solution in
+real-time (interactive) or submitting it to a queue. First, try running
+it interactively by selecting <B>1</B>.</P>
+
+<BLOCKQUOTE>
+<PRE>
+Enter a queue number from the following list or&nbsp;&lt;CR&gt; for default:
+&nbsp; 1: REAL (interactive)
+&nbsp; 2: AT_QUE
+
+Queue name.......................(&lt;CR&gt; for 1):
+</PRE>
+</BLOCKQUOTE>
+
+<P> The next questions asks whether the output should be written to the
+screen or to a list file <B>raetaf.lis</B>. Enter <B>n</B> to create a
+list file.</P>
+
+<BLOCKQUOTE>
+<PRE>
+Print output at screen?....................(y/n,[cr]=y): n
+</PRE>
+</BLOCKQUOTE>
+
+<P> Some file information will be displayed.</P>
+
+<BLOCKQUOTE>
+<PRE>
+Version...............: /net/zargon/usr2/wind/wind/SGIMP6.5/R12000/wind5.exe
+Input file name.......: raetaf.dat
+Wind output to........: raetaf.lis
+Grid file name........: raetaf.cgd
+Flow file name........: raetaf.cfl
+Job run que type is...: REAL
+</PRE>
+</BLOCKQUOTE>
+
+<P> A final carriage return will cause the job to be submitted.</P>
+
+<BLOCKQUOTE>
+<PRE>
+  Press [cr] to submit job, another key (except space) and [cr] to abort:
+</PRE>
+</BLOCKQUOTE>
+
+<P> The list file is <A HREF="raetaf.lis">raetaf.lis</A> and contains
+the output from the computation and lists the residual information for
+both the flow equations and the turbulence model equation for each
+iteration.  The integrated lift is also output every 10 iterations. </P> 
+
+<P> The flow data file is <A HREF="raetaf.cfl">raetaf.cfl</A> and
+contains the final solution.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Convergence</H3>
+
+<P> There are several ways to examine the convergence of the solution. 
+The RESPLT utility is used for these to read information from the 
+list file <A HREF="raetaf.lis">raetaf.lis</A>.  First the L2 norm 
+of the residual of the conservation variables (change over a time step) 
+can be read from the list file,</P>
+
+<BLOCKQUOTE>
+  <B>resplt &lt;</B> <A HREF="resplt.nsl2.com">resplt.nsl2.com</A>
+</BLOCKQUOTE>
+
+<P> The file <A HREF="resplt.nsl2.com">resplt.nsl2.com</A> is a command
+file containing the inputs for RESPLT to output the GENPLOT formatted
+plot data file named <A HREF="nsl2.gen">nsl2.gen</A> of the residuals
+as a function of the iterations.  This file can be plotted using
+CFPOST,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.nsl2.com">cfpost.nsl2.com</A>
+</BLOCKQUOTE>
+
+<P> where the file <A HREF="cfpost.nsl2.com">cfpost.nsl2.com</A> is a command
+file containing the inputs for CFPOST.  Fig. 2 shows the solution residual 
+that is displayed by CFPOST.</P>
+
+<P align="center"><IMG SRC="nsl2.jpg" BORDER=1 alt="Figure 2 is described in the surrounding text"><br>
+<B>Figure 2. Plot of the L2 solution residual history.</B></P>
+
+<P> The convergence information for the Spalart-Allmaras turbulence variable can 
+be obtained from the list file using RESPLT, </P>
+
+<BLOCKQUOTE>
+  <B>resplt &lt;</B> <A HREF="resplt.sal2.com">resplt.sal2.com</A>
+</BLOCKQUOTE>
+
+<P> The file <A HREF="resplt.sal2.com">resplt.sal2.com</A> is a command
+file containing the inputs for RESPLT to output the GENPLOT formatted
+plot data file named <A HREF="sal2.gen">sal2.gen</A> of the residuals
+as a function of the iterations.  This file can be plotted using
+CFPOST,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.sal2.com">cfpost.sal2.com</A>
+</BLOCKQUOTE>
+
+<P> where the file <A HREF="cfpost.sal2.com">cfpost.sal2.com</A> is a
+command file containing the inputs for CFPOST.  Fig. 3 shows the
+turbulence residual that is displayed by CFPOST.</P>
+
+<P align="center"><IMG SRC="sal2.jpg" BORDER=1 alt="Figure 3 is described in the surrounding text"><br> 
+<B>Figure 3. Plot of the L2 turbulence residual history.</B></P>
+
+<P> A more significant indicator of solution convergence is to examine
+the convergence of the engineering quantity to be obtained from the
+analysis.  Here it is lift and drag on the airfoil.  The <B>loads</B>
+keyword in the input data file <A HREF="raetaf.dat">raetaf.dat</A>
+output this information into the list file <A
+HREF="raetaf.lis">raetaf.lis</A>.  RESPLT is used to read this
+information and create plot files,</P>
+
+<BLOCKQUOTE>
+  <B>resplt &lt;</B> <A HREF="resplt.liftconv.com">resplt.liftconv.com</A>
+</BLOCKQUOTE>
+
+<P> The file <A HREF="resplt.liftconv.com">resplt.liftconv.com</A> is a
+command file containing the inputs for RESPLT to output the GENPLOT
+formatted plot data file named <A HREF="liftconv.gen">liftconv.gen</A>
+of the residuals as a function of the iterations.  This file can be
+plotted using CFPOST,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.liftconv.com">cfpost.liftconv.com</A>
+</BLOCKQUOTE>
+
+<P> where the file <A
+HREF="cfpost.liftconv.com">cfpost.liftconv.com</A> is a command file
+containing the inputs for CFPOST. CFPOST will display in sequence the
+plots for drag, lift, and z-direction force.  Fig. 4 and 5 shows the
+convergence of the drag and lift as displayed by CFPOST.</P>
+
+<P align="center"><IMG SRC="dragconv.jpg" BORDER=1 alt="Figure 4 is described in the surrounding text"><br>
+<B>Figure 4. Plot of the sectional drag on the airfoil 
+with iterations.</B></P>
+
+<P align="center"><IMG SRC="liftconv.jpg" BORDER=1 alt="Figure 5 is described in the surrounding text"><br>
+<B>Figure 5. Plot of the sectional lift on the airfoil 
+with iterations.</B></P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Post-Processing</H3>
+
+<P> The CFPOST utility can be used to generate engineering information 
+from the the data files.  First, the PLOT3D files can be obtained for 
+displaying in FAST,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.plot3d.com">cfpost.plot3d.com</A><BR>
+  <B>fast</B> <A HREF="fast.com">fast.com</A> 
+</BLOCKQUOTE>
+
+<P> The PLOT3D grid file created is named <A
+HREF="raetaf.x">raetaf.x</A> and the solution file is <A
+HREF="raetaf.q">raetaf.q</A>.  Both are unformatted, whole, 3D, and
+single-block.  The FAST command file <A HREF="fast.com">fast.com</A>
+will read these files, calculate the pressure and Mach number and
+display the pressure contours.  Fig. 6 shows the pressure contours 
+near the airfoil.</P>
+
+<P align="center"><IMG SRC="pres.jpg" BORDER=1 alt="Figure 6 is described in the surrounding text"><br>
+<B>Figure 6. The pressure contours near the RAE 2822 
+transonic airfoil.</B></P>
+
+
+<P> For an airfoil calculation, one piece of important information is 
+the distribution of pressure coefficients on the airfoil.  CFPOST can 
+directly output and plot this information,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.cp.com">cfpost.cp.com</A>
+</BLOCKQUOTE>
+
+<P> where <A HREF="cfpost.cp.com">cfpost.cp.com</A> is the command
+input file for CFPOST.  A GENPLOT file named <A
+HREF="cp.wind.gen">cp.wind.gen</A> is created and plotted.  The
+pressure coefficient is negative for pressures less than freestream,
+which occurs on the top of the airfoil.  In plots of pressure
+coefficients for airfoils, the negative of the pressure coefficient is
+usually plotted to indicate that the lower pressure region is on the
+top of the airfoil and the high pressure region is on the bottom of the
+airfoil.  This is done in the CFPOST command file <A
+HREF="cfpost.cp.com">cfpost.cp.com</A>.</P>
+
+<P> Pressure coefficient data from a wind tunnel experiment is
+available for comparison and is in the GENPLOT file <A
+HREF="cp.exp.gen">cp.exp.gen</A>.  Fig. 7 presents the comparison
+between the experiment data and WIND.  Also plotted are the results
+from earlier computations using the NPARC code, which are contained in
+the GENPLOT file <A HREF="cp.nparc.gen">cp.nparc.gen</A>.</P>
+
+<P align="center"><IMG SRC="cp.jpg" BORDER=1 alt="Figure 7 is described in the surrounding text"><br>
+<B>Figure 7. Plot of the pressure coefficients on the airfoil. 
+</B></p>
+
+
+<P> For an airfoil calculation, another piece of important information
+is the forces on the airfoil which result from pressure and
+skin-friction.  CFPOST can be used to integrate these forces over the
+surface of the airfoil,</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.forces.com">cfpost.forces.com</A>
+</BLOCKQUOTE>
+
+<P> where <A HREF="cfpost.forces.com">cfpost.forces.com</A> is the
+command input file for CFPOST.  A list file named <A
+HREF="forces.lis">forces.lis</A> is created in which the force
+information is printed.</P>
+
+
+<P> The skin friction coefficients along the surface of the airfoil 
+can be computed, </P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.cf.com">cfpost.cf.com</A>
+</BLOCKQUOTE>
+
+<P> where <A HREF="cfpost.cf.com">cfpost.cf.com</A> is the
+command input file for CFPOST.  A GENPLOT file named <A
+HREF="cf.wind.gen">cf.wind.gen</A> is created in which the skin 
+friction coefficients are listed.</P>
+
+<P> For a viscous computation, it is useful to examine how well the
+boundary layers were resolved.  One measure of this is the y+ values at
+the grid points in the boundary layers.  The list file <A
+HREF="forces.lis">forces.lis</A> does contain information on the y+
+values throughout the grid.  To examine the boundary layer at a certain
+location, CFPOST can be used.</P>
+
+<BLOCKQUOTE>
+  <B>cfpost &lt;</B> <A HREF="cfpost.bl.com">cfpost.bl.com</A>
+</BLOCKQUOTE>
+
+<P> The file <A HREF="cfpost.bl.com">cfpost.bl.com</A> is a command
+file which writes out the x and y coordinates, u-velocity, v-velocity,
+and temperature at I330, which is on the top of the airfoil just before 
+the trailing edge <A HREF="bl.gen">bl.gen</A>.  </P> 
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Comparisons of the Results</H3>
+
+<P> Figure 7 shows the comparisons of the computed surface pressure
+coefficients with NPARC and experimental results.  The WIND results
+follow the trend of the NPARC results with a slight improvement in the
+capture of the shock on the upper surface.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Sensitivity Studies</H3>
+
+<P> No sensitivity studies were performed.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">References</H3>
+
+<P> 1. Cook, P.H., M.A. McDonald, M.C.P. Firmin, &quot;Aerofoil RAE 2822 - Pressure 
+Distributions, and Boundary Layer and Wake Measurements,&quot; <I>Experimental 
+Data Base for Computer Program Assessment</I>, AGARD Report AR 138, 1979.</P>
+
+
+
+<!---------------------------------------------------------------------->
+<h3 class="style1">Contact Information</h3>
+
+<P> This study was created on September 30, 1998 and updated on
+December 17, 2002 by <A HREF="mailto:John.W.Slater@grc.nasa.gov" >
+John W. Slater</A>, who may be contacted at:</P>
+
+<BLOCKQUOTE>
+   NASA John H. Glenn Research Center, MS 86-7 <BR>
+   21000 Brookpark Road <BR>
+   Cleveland, Ohio  44135 <BR>
+   Phone: (216) 433-8513 <BR>
+   e-mail: <A HREF="mailto:John.W.Slater@grc.nasa.gov" > 
+      John.W.Slater@grc.nasa.gov</A>
+</BLOCKQUOTE>
+
+
+<!---------------------------------------------------------------------->
+<hr>
+<span style="font-weight: bold;">Last Updated:</span> Wednesday, 10-Feb-2021 09:38:58 EST<br>
+
+
+
+
+<div id="footer">
+
+<!-- <img src="images/nasa_logo.gif" class="right"
+      width= "50" height="40" alt="NASA meatball" />
+-->
+
+<div>
+  <span style="font-weight: bold;">Responsible NASA Official/Curator:</span> 
+      <a href="mailto:john.w.slater@nasa.gov">John W. Slater</a>
+</div>
+
+<span><span style="font-weight: bold;">Web Policies: </span>
+      <a href="http://www.grc.nasa.gov/Doc/grcwebpolicies.html">Web Privacy Policy and Important Notices</a></span><br />
+		<span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+<!-- <span class="notprinted"><span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+</span> -->
+
+<!-- We participate in the US government's analytics program. See the data at analytics.usa.gov. -->
+
+<script language="javascript" id="_fed_an_ua_tag" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=GRC"></script>
+
+
+</div>
+
+</BODY>
+</HTML>

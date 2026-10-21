@@ -1,0 +1,299 @@
+<HTML>
+<HEAD>
+   <TITLE> ONERA M6 Wing </TITLE>
+<style type="text/css">
+<!--
+.style1 {color: #800000;
+         text-decoration: underline; }
+.style2 {weight: bold}
+.style3 {color: #800000;}
+
+-->
+</style>
+
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" 
+  VLINK="#551A8B" ALINK="#FF0000">
+
+
+<!---------------------------------------------------------------------->
+<B>NPARC Alliance Validation Archive</B><BR>
+<B><A HREF="../homepage.html">
+Validation Home</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B><A HREF="../archive.html">
+Archive</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B> ONERA M6 Wing </B>
+
+<HR>
+
+
+<!---------------------------------------------------------------------->
+
+<H2 align="center" class="style3"> ONERA M6 Wing </H2>
+
+<!---------------------------------------------------------------------->
+<P align="center">
+<IMG SRC="m6wing.jpg" BORDER=1 WIDTH=600 alt="Figure 1 is described in the surrounding text"><BR>
+    <B>Figure 1. The ONERA M6 wing (Fig. B1-2 from reference 1.).</B>  
+</P>
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Introduction</H3>
+
+<P> This case involves the flow over the ONERA M6 wing.  It was tested
+in a wind tunnel at transonic Mach numbers (0.7, 0.84, 0.88, 0.92) and
+various angles-of-attack up to 6 degrees.  The Reynolds numbers were
+about 12 million based on the mean aerodynamic chord.  The wind tunnel
+tests are documented by Schmitt and Charpin in the AGARD Report AR-138
+published in 1979 (Reference 1).</P>
+
+<P> Some pages of the report by Schmitt and Charpin (mostly geometry 
+information) are available as PDF files.   The 
+following pages have been scanned, Page: <a href="page01.pdf">1</a>, 
+<a href="page02.pdf">2</a>, <a href="page03.pdf">3</a>, 
+<a href="page04.pdf">4</a>, <a href="page056.pdf">5 &amp; 6</a>, 
+<a href="page07.pdf">7</a>, <a href="page20.pdf">20</a>, 
+<a href="page38.pdf">38</a>.</P>
+
+<P> The Onera M6 wing is a classic CFD validation case for external
+flows because of its simple geometry combined with complexities of
+transonic flow (i.e. local supersonic flow, shocks, and turbulent
+boundary layers separation).  It has almost become a standard for CFD
+codes because of its inclusion as a validation case in numerous CFD
+papers over the years.  In the proceedings of a single conference, the
+14th AIAA CFD Conference (1999), the Onera M6 wing was included in 10
+of the approximately 130 papers!  Some of the papers using the ONERA M6
+wing are listed as references below <i>(Contact me if you wish to have
+your paper referenced)</i>.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Flow Description</H3>
+
+<P> Currently, the CFD simulations use the flow field conditions of
+Test 2308 of Reference 1.  Table 1 lists these flow conditions.  These
+correspond to a Reynolds number of 11.72 million based on the mean
+aerodynamic chord of 0.64607 meters. </P> 
+
+<TABLE BORDER CELLPADDING=7 align="center">
+<CAPTION><B>Table 1. Flow conditions for Test 2308 of Ref. 1.</B></CAPTION>
+
+<TR>
+<TH scope="col">Mach</TH>
+<TH>Reynolds Number</TH>
+<TH>Angle-of-Attack (deg)</TH>
+<TH>Angle-of-Sideslip (deg)</TH>
+</TR>
+
+<TR>
+<TD scope="row"> 0.8395   </TD>
+<TD> 11.72E+06 </TD>
+<TD> 3.06     </TD>
+<TD> 0.0      </TD>
+</TR>
+
+</TABLE>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Geometry</H3>
+
+<P> The ONERA M6 wing is a swept, semi-span wing with no twist.  It
+uses a symmetric airfoil using the ONERA D section.  The coordinates of
+the airfoil section at the (y/b) = 0.0 plane are listed on <a
+href="page07.pdf">Page 7</a> and also in a picture of [<a
+href="tableb1.jpg">Table B1-1</a>]&nbsp;<a href="http://www.adobe.com/products/acrobat/alternate.html#505enu">(Download
+Accessible PDF Plug-in)</a> of the Schmitt and Charpin report.
+The file <a href="airfoil.txt">airfoil.txt</a> is an ASCII text file
+containing these coordinates.   The coordinates indicate that there 
+is a finite thickness to the trailing edge.  For CFD simulations, an 
+approximation is usually made of a zero trailing edge thickness.  The 
+Fortran program <a href="foilmod.f90">foilmod.f90</a> was written to 
+linearly scale the (z/l) coordinates near the trailing edge so that 
+the trailing edge thickness is zero.  The modified coordinates are in 
+the ASCII text file <a href="foilmod.txt">foilmod.txt</a>. </P>
+
+<P> Figure 2 shows the geometric layout of the wing.  This figure is
+also on [<a href="page38.pdf">Page 38</a>]&nbsp;<a href="http://www.adobe.com/products/acrobat/alternate.html#505enu">(Download
+Accessible PDF Plug-in)</a> of the Schmitt and Charpin
+report.  Table 2 below lists some of the geometric properties.</P>
+
+<P align="center">
+<IMG SRC="figb1.jpg" BORDER=1 WIDTH=600 alt="Figure 2 is described in the surrounding text"><BR>
+    <B>Figure 2. Geometric layout of the ONERA M6 wing (Fig. B1-1 from 
+    reference 1.).</B>  
+</P>
+
+<TABLE BORDER=1 CELLPADDING=7 align="center">
+
+  <CAPTION> <B> Table 2. ONERA M6 wing geometry. </B> 
+  </CAPTION>
+
+  <TR> <TH scope="row"> Span, <b>b</b> </TH> 
+       <TD> 1.1963 meters </TD> </TR>
+
+  <TR> <TH scope="row"> Mean Aerodynamic Chord, <b>c</b> </TH> 
+       <TD> 0.64607 meters </TD> </TR>
+
+  <TR> <TH scope="row"> Aspect Ratio </TH> 
+       <TD> 3.8 </TD> </TR>
+
+  <TR> <TH scope="row"> Taper Ratio </TH> 
+       <TD> 0.562 </TD> </TR>
+
+  <TR> <TH scope="row"> Leading-edge Sweep </TH> 
+       <TD> 30.0 degrees </TD> </TR>
+
+  <TR> <TH scope="row"> Trailing-edge Sweep </TH> 
+       <TD> 15.8 degrees </TD> </TR>
+
+</TABLE>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Comparison Data</H3>
+
+<P> Comparison data consists of pressure coefficients at sections along
+the span of the wing obtained in the experiment performed by Schmitt
+and Charpin as reported in the AGARD report referenced below.  Table 3 
+lists links to text data files containing these pressure coefficients 
+along the lower and upper surfaces of the wing at each of the seven 
+sections.  The spanwise location of the sections are specified with 
+respect to the wing span, <b>b</b>.  The accuracy of the pressure 
+coefficient measurements at Mach 0.84 was determined to be +/- 0.02.</P>
+
+<TABLE BORDER=1 CELLPADDING=7 align="center">
+
+  <CAPTION> <B> Table 3. Data files for pressure 
+   coefficients obtained from the experiment by Schmitt
+    and Charpin (1979). </B> 
+  </CAPTION>
+
+  <TR> <TH scope="col"> Section </TH>
+       <TH> y/b </TH> 
+       <TH> Cp Lower Surface</TH> 
+       <TH> Cp Upper Surface </TH> </TR>
+
+  <TR> <TD scope="row"> 1 </TD>
+       <TD> 0.2 </TD> 
+       <TD> <a href="cp1l.ex">cp1l.ex</a> </TD> 
+       <TD> <a href="cp1u.ex">cp1u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 2 </TD>
+       <TD> 0.44 </TD> 
+       <TD> <a href="cp2l.ex">cp2l.ex</a> </TD> 
+       <TD> <a href="cp2u.ex">cp2u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 3 </TD>
+       <TD> 0.65 </TD> 
+       <TD> <a href="cp3l.ex">cp3l.ex</a> </TD> 
+       <TD> <a href="cp3u.ex">cp3u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 4 </TD>
+       <TD> 0.8 </TD> 
+       <TD> <a href="cp4l.ex">cp4l.ex</a> </TD> 
+       <TD> <a href="cp4u.ex">cp4u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 5 </TD>
+       <TD> 0.9 </TD> 
+       <TD> <a href="cp5l.ex">cp5l.ex</a> </TD> 
+       <TD> <a href="cp5u.ex">cp5u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 6 </TD>
+       <TD> 0.95 </TD> 
+       <TD> <a href="cp6l.ex">cp6l.ex</a> </TD> 
+       <TD> <a href="cp6u.ex">cp6u.ex</a> </TD> </TR>
+
+  <TR> <TD scope="row"> 7 </TD>
+       <TD> 0.99 </TD> 
+       <TD> <a href="cp7l.ex">cp7l.ex</a> </TD> 
+       <TD> <a href="cp7u.ex">cp7u.ex</a> </TD> </TR>
+
+</TABLE>
+
+<P> The experimental pressure coefficients are also available in a TECPLOT 
+data file, <A HREF="ONERAb114.tec">ONERAb114.tec</A>.</P>
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Computational Studies</H3>
+
+<TABLE BORDER=1 CELLPADDING=7 align="center">
+
+  <CAPTION> <B> Table 3. Computational studies  
+                peformed for the ONERA M6 wing case. </B> 
+  </CAPTION>
+
+  <TR> <TH scope="col"> Study </TH>
+       <TH> Category </TH> 
+       <TH> Person </TH> 
+       <TH> Comments </TH> </TR>
+
+  <TR> <TD scope="row"> <A HREF="m6wing01/m6wing01.html"> Study #1</A> </TD>
+       <TD> Example </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Demonstrate computation for a 3D wing flow. </TD> </TR>
+
+  <TR> <TD scope="row"> <A HREF="m6wing02/m6wing02.html"> Study #2</A> </TD>
+       <TD> Verification </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Verify zero drag about 3D wing in inviscid flow. </TD> </TR>
+
+</TABLE>
+
+<P> The AIAA Paper 97-2010 referenced below by Mani et al. presents
+computational results for this case obtained using NASTD (predecessor
+to WIND) as part of an assessment of the Spalart-Allmaras and SST
+turbulence models.</P>
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">References</H3>
+
+<P> 1. Schmitt, V. and F. Charpin, &quot;Pressure Distributions on the
+ONERA-M6-Wing at Transonic Mach Numbers,&quot; <i>Experimental Data Base for
+Computer Program Assessment.</i>  Report of the Fluid Dynamics Panel
+Working Group 04, AGARD AR 138, May 1979.</P>
+
+<P> 2. Mani, M., J.A. Ladd, A.B. Cain, and R.H. Bush, &quot;An Assessment of 
+One- and Two-Equation Turbulence Models for Internal and External 
+Flows&quot;, AIAA 97-2010, June 1997.</P>
+
+<!---------------------------------------------------------------------->
+<hr>
+<span style="font-weight: bold;">Last Updated:</span> Wednesday, 10-Feb-2021 09:39:00 EST<br>
+
+
+
+
+
+
+<div id="footer">
+
+<!-- <img src="images/nasa_logo.gif" class="right"
+      width= "50" height="40" alt="NASA meatball" />
+-->
+
+<div>
+  <span style="font-weight: bold;">Responsible NASA Official/Curator:</span> 
+      <a href="mailto:john.w.slater@nasa.gov">John W. Slater</a>
+</div>
+
+<span><span style="font-weight: bold;">Web Policies: </span>
+      <a href="http://www.grc.nasa.gov/Doc/grcwebpolicies.html">Web Privacy Policy and Important Notices</a></span><br />
+		<span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+<!-- <span class="notprinted"><span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+</span> -->
+
+<!-- We participate in the US government's analytics program. See the data at analytics.usa.gov. -->
+
+<script language="javascript" id="_fed_an_ua_tag" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=GRC"></script>
+
+
+</div>
+
+</BODY>
+</HTML>

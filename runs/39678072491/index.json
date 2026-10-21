@@ -1,0 +1,37 @@
+{
+ "run_id": "39678072491",
+ "created_utc": "2026-10-21T21:37:18Z",
+ "cases": {
+  "m6_euler": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "m6_rans_hexa": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 4000
+  },
+  "m6_rans_hybrid": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 4000
+  },
+  "rae2822_c6": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 1000
+  },
+  "rae2822_c6_ogrid": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 2000
+  },
+  "sw_holdout_euler": {
+   "status": "failed",
+   "stop_reason": "Exception: Could not create spline",
+   "n_iter": null
+  }
+ },
+ "reference": "updated"
+}

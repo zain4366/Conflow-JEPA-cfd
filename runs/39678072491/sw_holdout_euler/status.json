@@ -1,0 +1,62 @@
+{
+ "case": "sw_holdout_euler",
+ "status": "failed",
+ "stop_reason": "Exception: Could not create spline",
+ "convergence": null,
+ "n_iter": null,
+ "iters_total": null,
+ "wall_s_total": null,
+ "segments": [],
+ "timing": {
+  "seconds_per_iter": null,
+  "startup_s_median": null
+ },
+ "prepared": null,
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+  "mem_total": "16372436 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000291"
+ },
+ "case_definition": {
+  "kind": "superwing",
+  "solver": "euler",
+  "hf": {
+   "repo": "yunplus/SuperWing",
+   "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
+  },
+  "mesh": {
+   "size_factor": 1.0
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "note": "Held-out SuperWing test wing (rule in configs/spec.yaml cfd.superwing_holdout); data CC BY-SA 4.0",
+  "name": "sw_holdout_euler"
+ },
+ "runner_commit": "2d0fc268f9885bdf5bcb5e6a5280dd4506534072",
+ "run_id": "39678072491",
+ "jobs": [
+  {
+   "job_start": 1792617682.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T21:22:12Z",
+ "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/run_case.py\", line 110, in main\n    prep = cfd.prepare_case(case, work, log=print)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 1058, in prepare_case\n    st = wing_mesh_3d(surf, work / \"mesh.su2\", size_factor=float(case[\"mesh\"][\"size_factor\"]), log=log)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 799, in wing_mesh_3d\n    inner = occ.addThruSections([wire(i) for i in rows if i <= kink], makeSolid=True, makeRuled=False)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 799, in <listcomp>\n    inner = occ.addThruSections([wire(i) for i in rows if i <= kink], makeSolid=True, makeRuled=False)\n                                 ^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 795, in wire\n    spl = occ.addSpline(tags)\n          ^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/micromamba/envs/su2/lib/python3.11/site-packages/gmsh.py\", line 7108, in addSpline\n    raise Exception(logger.getLastError())\nException: Could not create spline\n"
+}

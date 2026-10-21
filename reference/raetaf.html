@@ -1,0 +1,183 @@
+<HTML>
+<HEAD>
+   <TITLE> RAE2822 Transonic Airfoil </TITLE>
+<style type="text/css">
+<!--
+.style1 {color: #800000;
+         text-decoration: underline; }
+.style2 {weight: bold}
+.style3 {color: #800000;}
+
+-->
+</style>
+
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" 
+  VLINK="#551A8B" ALINK="#FF0000">
+
+
+<!---------------------------------------------------------------------->
+<B>NPARC Alliance Validation Archive</B><BR>
+<B><A HREF="../homepage.html">
+Validation Home</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B><A HREF="../archive.html">
+Archive</A></B> &nbsp; <B> &gt; </B> &nbsp; 
+<B> RAE2822 Transonic Airfoil </B>
+
+<HR>
+
+
+<!---------------------------------------------------------------------->
+<H2 align="center" class="style3"> RAE2822 Transonic Airfoil </H2>
+<!---------------------------------------------------------------------->
+<P align="center">
+<IMG SRC="raetaf.jpg" BORDER=1 WIDTH=600 alt="Figure 1 is described in the surrounding text"><BR>
+    <B>Figure 1. RAE 2822 
+       transonic airfoil (From Ref. 1).</B>  
+</P>
+
+<!---------------------------------------------------------------------->
+<H3 class="style1" >Flow Description</H3>
+
+<P> This validation case examines the transonic flow over the RAE 2822
+airfoil as reported from reference 1.  This case correponds to test 
+case 6.  Table 1 indicates the freestream flow conditions of that case.</P>
+
+<TABLE BORDER CELLPADDING=7 align="center">
+<CAPTION><B>Table 1. Freestream conditions.</B></CAPTION>
+
+<TR>
+<TH scope="col">Mach</TH>
+<TH>Reynolds Number</TH>
+<TH>Angle-of-Attack (deg)</TH>
+</TR>
+
+<TR>
+<TD scope="row"> 0.725    </TD>
+<TD> 6.5 million </TD>
+<TD> 2.92     </TD>
+</TR>
+
+</TABLE>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Geometry</H3>
+
+<P> The geometry consists of the RAE 2822 airfoil.  The coordinates of
+the lower and upper surfaces of the airfoil, as reproduced from Table
+6.1 of (Cook et al., 1979), can be found in the file <a
+href="geom.txt"> geom.txt</a>.  The coordinates are normalized
+according to the chord. The Fortran 90 program <a href="geom.f90">
+geom.f90</a> is a simple program which creates data files (<a
+href="yl.pts">yl.pts</a>,<a href="yu.pts">yu.pts</a>) for the ICEM CFD
+grid generator.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Computational Domain and 
+Boundary Conditions</H3>
+
+<P> The computational domain for this case is bounded by a no-slip 
+airfoil surface and a farfield boundary placed a significant distance 
+from the airfoil.</P>  
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Comparison Data</H3>
+
+<P> This case corresponds to Case 6 from Ref. 1.  Comparison data 
+consists of pressure coefficients and boundary layers profiles 
+obtained from experiments conducted at RAE and reported in 1979 in 
+Ref. 1.</P>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">Computational Studies</H3>
+
+<TABLE BORDER=1 CELLPADDING=7 align="center">
+
+  <CAPTION> <B> Table 2. Computational studies peformed for the 
+  RAE 2822 transonic airfoil. </B> 
+  </CAPTION>
+
+  <TR> <TH scope="col"> Study </TH>
+       <TH> Category </TH> 
+       <TH> Person </TH> 
+       <TH> Comments </TH> </TR>
+
+  <TR> <TD scope="row"> <A HREF="raetaf01/raetaf01.html"> Study #1</A> </TD>
+       <TD> Example </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Demonstrates computation of airfoil flows </TD> </TR>
+
+  <TR> <TD scope="row"> <A HREF="raetaf02/raetaf02.html"> Study #2</A> </TD>
+       <TD> Verification </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Mach 0.3 inviscid flow at 0 angle-of-attack for zero 
+            drag </TD> </TR>
+
+  <TR> <TD scope="row"> <A HREF="raetaf03/raetaf03.html"> Study #3</A> </TD>
+       <TD> Example </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Demonstrates application of overset grids </TD> </TR>
+
+  <TR> <TD scope="row"> <A HREF="raetaf04/raetaf04.html"> Study #4</A> </TD>
+       <TD> Validation </TD> 
+       <TD> J.W. Slater </TD> 
+       <TD> Compares WIND 5.0 to experimental data </TD> </TR>
+
+  <TR> <TD scope="row"> <A HREF="raetaf05/raetaf05.html"> Study #5</A> </TD>
+       <TD> Validation </TD> 
+       <TD> C. Nelson </TD> 
+       <TD> Explores turbulence model variations </TD> </TR>
+
+</TABLE>
+
+
+<!---------------------------------------------------------------------->
+<H3 class="style1">References</H3>
+
+<P> 1. Cook, P.H., M.A. McDonald, M.C.P. Firmin, &quot;Aerofoil RAE 2822 - Pressure 
+Distributions, and Boundary Layer and Wake Measurements,&quot; <I>Experimental 
+Data Base for Computer Program Assessment</I>, AGARD Report AR 138, 1979.</P>
+
+
+<!---------------------------------------------------------------------->
+<hr>
+<span style="font-weight: bold;">Last Updated:</span> Wednesday, 10-Feb-2021 09:38:58 EST
+
+
+
+
+
+<div id="footer">
+
+<!-- <img src="images/nasa_logo.gif" class="right"
+      width= "50" height="40" alt="NASA meatball" />
+-->
+
+<div>
+  <span style="font-weight: bold;">Responsible NASA Official/Curator:</span> 
+      <a href="mailto:john.w.slater@nasa.gov">John W. Slater</a>
+</div>
+
+<span><span style="font-weight: bold;">Web Policies: </span>
+      <a href="http://www.grc.nasa.gov/Doc/grcwebpolicies.html">Web Privacy Policy and Important Notices</a></span><br />
+		<span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+<!-- <span class="notprinted"><span style="font-weight: bold;">Adobe Reader Download: </span>  
+        <a href="http://www.adobe.com/products/acrobat/readstep2.html" title="Go to Adobe Web Site">
+        Adobe Reader</a>
+</span> -->
+
+<!-- We participate in the US government's analytics program. See the data at analytics.usa.gov. -->
+
+<script language="javascript" id="_fed_an_ua_tag" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=GRC"></script>
+
+
+</div>
+
+</BODY>
+</HTML>
