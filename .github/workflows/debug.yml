@@ -16,12 +16,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cases: ${{ steps.p.outputs.cases }}
+      reference: ${{ steps.p.outputs.reference }}
     steps:
       - uses: actions/checkout@v4
       - id: p
-        run: python3 -c "import json;print('cases='+json.dumps(json.load(open('requests/debug.json'))['cases']))" | tee -a "$GITHUB_OUTPUT"
+        run: |
+          python3 -c "import json;d=json.load(open('requests/debug.json'));print('cases='+json.dumps(d['cases']));print('reference='+('true' if d.get('reference') is True else 'false'))" | tee -a "$GITHUB_OUTPUT"
+  reference:
+    needs: plan
+    if: needs.plan.outputs.reference == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --quiet numpy scipy pyyaml requests
+      - run: python3 runner/fetch_reference.py out/reference
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash runner/publish.sh out/reference reference ${{ github.run_id }}
   run:
     needs: plan
+    if: needs.plan.outputs.cases != '[]'
     strategy:
       fail-fast: false
       matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}

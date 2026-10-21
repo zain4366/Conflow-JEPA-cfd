@@ -1,1 +1,1 @@
-{"note": "quick check 3: finer Euler sizes, wall-triangulation integration", "cases": ["sw_holdout_euler"]}
+{"note": "fetch the experimental reference data", "cases": [], "reference": true}

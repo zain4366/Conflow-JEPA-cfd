@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Commit one case's out/ directory to the `results` branch (runs/<run_id>/<case> and latest/<case>).
 # usage: publish.sh OUT_DIR CASE RUN_ID      (needs GH_TOKEN and GITHUB_REPOSITORY)
+#        publish.sh OUT_DIR reference RUN_ID  -> reference/ (experimental data and manifest)
 set -euo pipefail
 OUT=$(realpath "$1"); CASE=$2; RUN=$3
 URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
@@ -16,7 +17,8 @@ for attempt in 1 2 3 4 5; do
   fi
   cd "$D/res"
   git config user.name "conflow-cfd-runner"; git config user.email "actions@users.noreply.github.com"
-  for dst in "runs/$RUN/$CASE" "latest/$CASE"; do rm -rf "$dst"; mkdir -p "$(dirname "$dst")"; cp -r "$OUT" "$dst"; done
+  if [ "$CASE" = "reference" ]; then DSTS="reference"; else DSTS="runs/$RUN/$CASE latest/$CASE"; fi
+  for dst in $DSTS; do rm -rf "$dst"; mkdir -p "$(dirname "$dst")"; cp -r "$OUT" "$dst"; done
   git add -A
   git commit -q -m "SU2 $CASE, run $RUN" || { echo "nothing to commit"; exit 0; }
   if git push -q origin results; then echo "published $CASE"; exit 0; fi
