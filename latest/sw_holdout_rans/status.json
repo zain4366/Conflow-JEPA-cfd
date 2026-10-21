@@ -1,0 +1,116 @@
+{
+ "case": "sw_holdout_rans",
+ "status": "failed",
+ "stop_reason": "ValueError: could not broadcast input array from shape (336513,) into shape (19511,)",
+ "convergence": null,
+ "n_iter": null,
+ "iters_total": null,
+ "wall_s_total": null,
+ "segments": [],
+ "timing": {
+  "seconds_per_iter": null,
+  "startup_s_median": null
+ },
+ "prepared": null,
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000324"
+ },
+ "case_definition": {
+  "kind": "superwing",
+  "solver": "rans_sa",
+  "hf": {
+   "repo": "yunplus/SuperWing",
+   "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
+  },
+  "mesh": {
+   "type": "rans_hybrid"
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ],
+   "reynolds": 20000000.0,
+   "reynolds_length": 1.0,
+   "temperature": 300.0
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "note": "Held-out SuperWing test wing, RANS-SA (Re 2e7, T 300 K as in SuperWing) on the ConFlow prism/tetra mesh; Gate G1 accuracy check vs ADflow",
+  "name": "sw_holdout_rans",
+  "numerics": {
+   "scheme": "ROE",
+   "multigrid": 0,
+   "cfl": 4.0
+  }
+ },
+ "runner_commit": "ee7f3126b660f635e0c4dc8ff5dd84b2c2290c34",
+ "run_id": "39683432263",
+ "jobs": [
+  {
+   "job_start": 1792620125.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-21T22:52:03Z",
+ "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/run_case.py\", line 116, in main\n    prep = cfd.prepare_case(case, work, log=print)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 1181, in prepare_case\n    st = wing_mesh_3d_rans(surf, work / \"mesh.su2\", reynolds=float(case[\"flow\"][\"reynolds\"]),\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/Conflow-JEPA-cfd/Conflow-JEPA-cfd/runner/conflow/cfd.py\", line 1537, in wing_mesh_3d_rans\n    lut[:len(bnd_pts)] = np.arange(len(bnd_pts))\n    ~~~^^^^^^^^^^^^^^^\nValueError: could not broadcast input array from shape (336513,) into shape (19511,)\n",
+ "selection_before_failure": {
+  "wing_row": 158,
+  "case_index": 1180,
+  "n_eligible_wings": 19,
+  "wing_id": 158,
+  "index_row": {
+   "wing_row": 158.0,
+   "cond_idx": 6.0,
+   "aoa": 2.8431974182,
+   "mach": 0.7749175716,
+   "s_ref_half": 1.7373365664607943,
+   "half_span": 2.918870437794977,
+   "cl_solver": 0.0006753217353716229,
+   "cd_solver": 0.010820685420967657,
+   "cm_solver": 0.03682240003002936,
+   "cl_surface": 0.000663796099853791,
+   "cd_surface": 0.0108199668121343,
+   "cm_surface": 0.03676489581972171
+  },
+  "downloads": {
+   "configs.dat": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/configs.dat",
+    "sha256": "78f673f75b665d6b1250382c4ddfbe3de6704de0a0d2dca745470f284d0c043d",
+    "bytes": 5079529,
+    "retrieved_utc": "2026-10-21T22:02:31Z"
+   },
+   "index.npy": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/index.npy",
+    "sha256": "6028984561df7a4f377a757ada1edc4edfeb724d45c4b522e70c8ccc0f6c1671",
+    "bytes": 2770304,
+    "retrieved_utc": "2026-10-21T22:02:31Z"
+   },
+   "train.parquet": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/train.parquet",
+    "sha256": "67f3b608d33afa746bb7d83e6a97f31f59ce08a87a62c3e8abf3cd0bdb33cfdc",
+    "bytes": 2203263,
+    "retrieved_utc": "2026-10-21T22:02:32Z"
+   },
+   "test.parquet": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/test.parquet",
+    "sha256": "d9eef7e1f44d960081e390bc0105740fe8dc266bb8fd0a5eea9fee1ba19f3d99",
+    "bytes": 241883,
+    "retrieved_utc": "2026-10-21T22:02:33Z"
+   }
+  }
+ }
+}
