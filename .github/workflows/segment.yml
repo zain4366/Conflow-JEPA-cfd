@@ -71,6 +71,11 @@ jobs:
           path: work/${{ inputs.case }}/state.json
           overwrite: true
           retention-days: 7
+      - name: Publish results to the results branch
+        if: always() && steps.chk.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash runner/publish.sh out/${{ inputs.case }} ${{ inputs.case }} ${{ github.run_id }}
       - name: Save results
         if: always() && steps.chk.outputs.active == 'true'
         uses: actions/upload-artifact@v4

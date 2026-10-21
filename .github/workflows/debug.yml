@@ -1,0 +1,29 @@
+# Single-segment runs for checking a case quickly (own concurrency group, so it does not wait for a
+# long su2 run). Trigger: edit requests/debug.json on main: {"cases": [...]}. Results are published
+# to the results branch exactly like su2 runs (runs/<run_id>/<case> and latest/<case>).
+name: su2-quick
+on:
+  push:
+    branches: [main]
+    paths: ["requests/debug.json"]
+permissions:
+  contents: write
+concurrency:
+  group: su2-quick
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      cases: ${{ steps.p.outputs.cases }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: python3 -c "import json;print('cases='+json.dumps(json.load(open('requests/debug.json'))['cases']))" | tee -a "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix: {case: "${{ fromJSON(needs.plan.outputs.cases) }}"}
+    uses: ./.github/workflows/segment.yml
+    with: {case: "${{ matrix.case }}", segment: 1, last: true}

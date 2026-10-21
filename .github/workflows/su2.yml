@@ -6,7 +6,7 @@ name: su2
 on:
   push:
     branches: [main]
-    paths: ["requests/**"]
+    paths: ["requests/run.json"]
   workflow_dispatch:
     inputs:
       cases:
