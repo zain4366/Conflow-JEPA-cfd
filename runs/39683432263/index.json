@@ -1,0 +1,11 @@
+{
+ "run_id": "39683432263",
+ "created_utc": "2026-10-21T22:52:48Z",
+ "cases": {
+  "sw_holdout_rans": {
+   "status": "failed",
+   "stop_reason": "ValueError: could not broadcast input array from shape (336513,) into shape (19511,)",
+   "n_iter": null
+  }
+ }
+}
