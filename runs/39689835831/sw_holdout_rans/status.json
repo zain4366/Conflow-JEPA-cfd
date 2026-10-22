@@ -1,0 +1,271 @@
+{
+ "case": "sw_holdout_rans",
+ "status": "paused",
+ "stop_reason": "job time budget",
+ "convergence": {
+  "status": "unconverged",
+  "criterion": null,
+  "n_iter": 1000,
+  "residual_drop_orders": -0.33833315499999994,
+  "cl_change_window": 0.004386129480000001,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 1000,
+ "iters_total": 1000,
+ "wall_s_total": 987.7200407981873,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 987.7200407981873,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.962879526,
+  "seconds_per_iter_mean": 0.9799745114864321,
+  "startup_s_median": 7.488096089187252,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "superwing",
+  "downloads": {
+   "configs.dat": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/configs.dat",
+    "sha256": "78f673f75b665d6b1250382c4ddfbe3de6704de0a0d2dca745470f284d0c043d",
+    "bytes": 5079529,
+    "retrieved_utc": "2026-10-21T22:55:09Z"
+   },
+   "index.npy": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/index.npy",
+    "sha256": "6028984561df7a4f377a757ada1edc4edfeb724d45c4b522e70c8ccc0f6c1671",
+    "bytes": 2770304,
+    "retrieved_utc": "2026-10-21T22:55:10Z"
+   },
+   "train.parquet": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/train.parquet",
+    "sha256": "67f3b608d33afa746bb7d83e6a97f31f59ce08a87a62c3e8abf3cd0bdb33cfdc",
+    "bytes": 2203263,
+    "retrieved_utc": "2026-10-21T22:55:11Z"
+   },
+   "test.parquet": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/test.parquet",
+    "sha256": "d9eef7e1f44d960081e390bc0105740fe8dc266bb8fd0a5eea9fee1ba19f3d99",
+    "bytes": 241883,
+    "retrieved_utc": "2026-10-21T22:55:11Z"
+   }
+  },
+  "superwing": {
+   "selection": {
+    "wing_row": 158,
+    "case_index": 1180,
+    "n_eligible_wings": 19
+   },
+   "wing_id": 158,
+   "index_row": {
+    "wing_row": 158.0,
+    "cond_idx": 6.0,
+    "aoa": 2.8431974182,
+    "mach": 0.7749175716,
+    "s_ref_half": 1.7373365664607943,
+    "half_span": 2.918870437794977,
+    "cl_solver": 0.0006753217353716229,
+    "cd_solver": 0.010820685420967657,
+    "cm_solver": 0.03682240003002936,
+    "cl_surface": 0.000663796099853791,
+    "cd_surface": 0.0108199668121343,
+    "cm_surface": 0.03676489581972171
+   },
+   "hf_repo": "yunplus/SuperWing",
+   "hf_revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c",
+   "license": "CC BY-SA 4.0 (Yang et al., SuperWing)"
+  },
+  "mesh3d": {
+   "n_cells": 706385,
+   "n_prisms": 637108,
+   "n_tets": 69277,
+   "n_points": 340630,
+   "n_layers": 38,
+   "n_layers_planned": 44,
+   "growth": 1.2,
+   "h1_root": 1.4756497714109437e-06,
+   "h1_min": 1.3341141836332888e-06,
+   "prism_layer_thickness_root": 0.0075103951343469845,
+   "n_wall_tris": 16766,
+   "ring_nodes": 128,
+   "span_rows": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30,
+    32,
+    34,
+    36,
+    38,
+    40,
+    42,
+    43,
+    44,
+    46,
+    48,
+    50,
+    52,
+    54,
+    56,
+    58,
+    60,
+    62,
+    64,
+    66,
+    68,
+    70,
+    72,
+    74,
+    76,
+    78,
+    80,
+    82,
+    84,
+    86,
+    88,
+    90,
+    92,
+    94,
+    96,
+    98,
+    100,
+    102,
+    104,
+    106,
+    108,
+    110,
+    112,
+    114,
+    116,
+    118,
+    120,
+    122,
+    124,
+    126,
+    128
+   ],
+   "reynolds": 20000000.0,
+   "yplus_target": 1.0,
+   "radius": 50.0,
+   "mesh_seconds": 19457.616062402725,
+   "gmsh_version": "4.15.2",
+   "tet_min_volume": 7.16189121541301e-10
+  },
+  "mesh_file": "mesh.su2",
+  "flow": {
+   "mach": 0.7749175716,
+   "aoa": 2.8431974182,
+   "ref_area": 1.7373365664607943
+  },
+  "mesh_sha256": "17a2f979fbb54d66aa79dd6fa8c3bc2d2148e7c6c2aa396e62f2505f21ec3877",
+  "mesh_bytes": 60302303,
+  "mesh_cells": 706385,
+  "prepare_s": 19463.00883102417
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16367524 kB",
+  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000330"
+ },
+ "case_definition": {
+  "kind": "superwing",
+  "solver": "rans_sa",
+  "hf": {
+   "repo": "yunplus/SuperWing",
+   "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
+  },
+  "mesh": {
+   "type": "rans_hybrid"
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ],
+   "reynolds": 20000000.0,
+   "reynolds_length": 1.0,
+   "temperature": 300.0
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "note": "Held-out SuperWing test wing, RANS-SA (Re 2e7, T 300 K as in SuperWing) on the ConFlow prism/tetra mesh; Gate G1 accuracy check vs ADflow",
+  "name": "sw_holdout_rans",
+  "numerics": {
+   "scheme": "ROE",
+   "multigrid": 0,
+   "cfl": 4.0
+  }
+ },
+ "runner_commit": "24ad4ebea33a9a4a0e78c76e721e5c29426aa638",
+ "run_id": "39689835831",
+ "jobs": [
+  {
+   "job_start": 1792623288.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-22T04:36:00Z",
+ "superwing_comparison": {
+  "su2_pressure_on_su2_wall": {
+   "cl": 0.04761102475020683,
+   "cd": 0.032061671268578444,
+   "cm": 0.1024964430926229,
+   "n_triangles": 16766,
+   "n_flipped": 157
+  },
+  "su2_pressure_mapped_to_data_grid": {
+   "cl": -0.003251999428067037,
+   "cd": 0.022900416176847092,
+   "cm": 0.023400956132779625
+  },
+  "su2_history_last": {
+   "cl": 0.04818098329,
+   "cd": 0.04139697163
+  },
+  "adflow": {
+   "cl_solver": 0.0006753217353716229,
+   "cd_solver": 0.010820685420967657,
+   "cm_solver": 0.03682240003002936,
+   "cl_surface": 0.000663796099853791,
+   "cd_surface": 0.0108199668121343,
+   "cm_surface": 0.03676489581972171
+  },
+  "cp_rmse_vs_adflow": 0.21085234753886223,
+  "note": "SU2 Euler (inviscid) vs ADflow RANS-SA; differences are reported, not corrected"
+ }
+}
