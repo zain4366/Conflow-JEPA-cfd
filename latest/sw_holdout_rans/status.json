@@ -1,13 +1,13 @@
 {
  "case": "sw_holdout_rans",
- "status": "paused",
+ "status": "converged",
  "stop_reason": "job time budget",
  "convergence": {
-  "status": "unconverged",
-  "criterion": null,
-  "n_iter": 1000,
-  "residual_drop_orders": -0.33833315499999994,
-  "cl_change_window": 0.004386129480000001,
+  "status": "converged",
+  "criterion": "cl_change",
+  "n_iter": 8000,
+  "residual_drop_orders": -0.3226577019999999,
+  "cl_change_window": 7.374305200000004e-05,
   "rule": {
    "residual_drop_orders": 5,
    "cl_change": 0.0001,
@@ -15,9 +15,9 @@
    "field": "rms[Rho]"
   }
  },
- "n_iter": 1000,
- "iters_total": 1000,
- "wall_s_total": 987.7200407981873,
+ "n_iter": 8000,
+ "iters_total": 8000,
+ "wall_s_total": 6325.50089597702,
  "segments": [
   {
    "k": 0,
@@ -26,13 +26,69 @@
    "wall_s": 987.7200407981873,
    "returncode": 0,
    "restart": false
+  },
+  {
+   "k": 1,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 782.2739012241364,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 2,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 763.9869160652161,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 3,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 765.8470621109009,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 4,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 765.0772972106934,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 5,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 754.4298496246338,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 6,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 759.1096911430359,
+   "returncode": 0,
+   "restart": true
+  },
+  {
+   "k": 7,
+   "iters_requested": 1000,
+   "iters_logged": 1000,
+   "wall_s": 747.0561378002167,
+   "returncode": 0,
+   "restart": true
   }
  ],
  "timing": {
-  "seconds_per_iter": 0.962879526,
-  "seconds_per_iter_mean": 0.9799745114864321,
-  "startup_s_median": 7.488096089187252,
-  "n_segments": 1
+  "seconds_per_iter": 0.7586839195,
+  "seconds_per_iter_mean": 0.784788947945603,
+  "startup_s_median": 5.590690811364652,
+  "n_segments": 8
  },
  "prepared": {
   "kind": "superwing",
@@ -189,12 +245,12 @@
  "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
  "machine": {
   "nproc": 4,
-  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "cpu_model": "AMD EPYC 9V45 96-Core Processor",
   "mem_total": "16367524 kB",
   "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
   "python": "3.11.17",
   "runner_os": "Linux",
-  "runner_name": "GitHub Actions 1000000330"
+  "runner_name": "GitHub Actions 1000000331"
  },
  "case_definition": {
   "kind": "superwing",
@@ -237,25 +293,30 @@
    "job_start": 1792623288.0,
    "run_attempt": "1",
    "job": "run"
+  },
+  {
+   "job_start": 1792643781.0,
+   "run_attempt": "1",
+   "job": "run"
   }
  ],
- "created_utc": "2026-10-22T04:36:00Z",
+ "created_utc": "2026-10-22T06:05:42Z",
  "superwing_comparison": {
   "su2_pressure_on_su2_wall": {
-   "cl": 0.04761102475020683,
-   "cd": 0.032061671268578444,
-   "cm": 0.1024964430926229,
+   "cl": 0.006312561406085023,
+   "cd": 0.03192870681805883,
+   "cm": 0.045498154908502605,
    "n_triangles": 16766,
    "n_flipped": 157
   },
   "su2_pressure_mapped_to_data_grid": {
-   "cl": -0.003251999428067037,
-   "cd": 0.022900416176847092,
-   "cm": 0.023400956132779625
+   "cl": -0.034440102121806745,
+   "cd": 0.024156715261153695,
+   "cm": -0.017573022844747883
   },
   "su2_history_last": {
-   "cl": 0.04818098329,
-   "cd": 0.04139697163
+   "cl": 0.006678410332,
+   "cd": 0.03823680579
   },
   "adflow": {
    "cl_solver": 0.0006753217353716229,
@@ -265,7 +326,7 @@
    "cd_surface": 0.0108199668121343,
    "cm_surface": 0.03676489581972171
   },
-  "cp_rmse_vs_adflow": 0.21085234753886223,
+  "cp_rmse_vs_adflow": 0.20407917517291577,
   "note": "SU2 Euler (inviscid) vs ADflow RANS-SA; differences are reported, not corrected"
  }
 }
