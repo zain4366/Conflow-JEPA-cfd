@@ -1,0 +1,42 @@
+# CFD verification tests (copied from the private repo, tests/test_t2_*.py) in the same conda-forge
+# environment as the SU2 runs, including the gmsh 3D meshers. Output goes to results/latest/pytest.
+name: tests
+on:
+  push:
+    branches: [main]
+    paths: ["tests/**", "runner/conflow/**", ".github/workflows/tests.yml"]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: su2-tests
+  cancel-in-progress: false
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: env/su2-env.yml
+          cache-environment: true
+          init-shell: bash
+      - name: Run tests
+        shell: bash -el {0}
+        env:
+          CONFLOW_SLOW: "1"
+        run: |
+          python -m pip install --quiet pytest
+          mkdir -p out/pytest
+          set +e
+          python -m pytest -q -rs tests > out/pytest/pytest.txt 2>&1
+          echo "returncode=$?" > out/pytest/returncode.txt
+          set -e
+          tail -30 out/pytest/pytest.txt
+          cp runner/VENDORED.json out/pytest/
+      - name: Publish
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash runner/publish.sh out/pytest pytest ${{ github.run_id }}
