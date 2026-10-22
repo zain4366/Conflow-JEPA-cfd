@@ -1,0 +1,11 @@
+{
+ "run_id": "39689835831",
+ "created_utc": "2026-10-22T06:06:25Z",
+ "cases": {
+  "sw_holdout_rans": {
+   "status": "converged",
+   "stop_reason": "job time budget",
+   "n_iter": 8000
+  }
+ }
+}
