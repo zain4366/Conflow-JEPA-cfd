@@ -186,3 +186,213 @@ checks:
     cl_reduction_min_abs_cl: 0.1  # relative error is evaluated where |CL| >= 0.1; abs error reported for all
     seed: 0
 seeds: [0, 1, 2]
+task3:
+  # Added in Task 3 (22 Oct 2026). Every setting below was fixed before any training run.
+  splits:
+    val_fraction_of_fit_wings: 0.10   # validation wings for early stopping / checkpoint choice, drawn from
+    val_seed: 100                     #  the fit wings only (never calibration or test wings)
+    calib_gamma_fraction: 0.5         # calibration wings split A (fits gamma) / B (conformal quantiles):
+    calib_gamma_seed: 200             #  gamma is fitted on calibration wings only and never on the wings
+                                      #  that set the quantile, so split conformal validity is kept
+  ood:
+    parameter: SA                     # LE sweep. Reason: design guidance in Task 4 pushes toward higher sweep
+    tail: upper                       #  (lower normal Mach, weaker shocks), so high-sweep extrapolation is the
+    quantile: 0.90                    #  shift that matters for the generator; AR mostly changes induced drag
+    threshold_population: fit+calib   #  smoothly. Threshold = 90th percentile of SA over fit + calibration
+                                      #  wings (test wings take no part in the choice). Wings with SA >= threshold
+                                      #  are removed from training, validation and calibration of the OOD models.
+  inputs:
+    geometry_channels: [x, y, z, nx, ny, nz]   # cell centres (geom_c) and unit outward normals from geom_n
+    patch_span_bands: 4                # 4 x 16 span cells
+    patch_surfaces: 2                  # chord cells 0..63 lower (TE to LE), 64..127 upper (LE to TE)
+  model:
+    token_dim: 128
+    latent_dim: 128                    # = encoder.latent_dim
+    patch_cnn_channels: [32, 64, 128]  # three stride-2 3x3 convolutions: 16 x 64 -> 2 x 8 per patch
+    encoder_layers: 4                  # transformer layers over the 8 patch tokens
+    encoder_heads: 4
+    predictor_layers: 2
+    predictor_heads: 4
+    operator_width: 512
+    operator_blocks: 4                 # residual MLP blocks on [z_std, M_std, AoA_std]
+    cp_decoder_channels: [128, 64, 48, 32, 16]   # 4 x 8 seed grid, four x2 upsamplings to 64 x 128
+    decoder_width: 512
+    decoder_blocks: 3
+    decoder_pca_max_modes: 256
+    decoder_pca_floor_fraction: 0.25   # K = smallest number of surface PCA modes whose reconstruction RMSE on
+                                       #  validation wings is <= 0.25 x the 2e-3 decoder target (cap 256)
+  jepa:
+    epochs: 1000                       # over training wings, batch of distinct wings, one random case each
+    batch_wings: 256
+    lr: 1.0e-3
+    weight_decay: 0.01
+    warmup_fraction: 0.03
+    ema_start: 0.996                   # EMA target encoder momentum, cosine schedule to ema_end
+    ema_end: 1.0
+    mask_patches_min: 4                # masked-flow view: Cp hidden on 4..7 of the 8 patches
+    mask_patches_max: 7
+    reg_weights: {var: 1.0, cov: 0.04, sigreg: 0.05}   # VICReg 25:25:1 ratio (Bardes et al. 2022);
+                                                     # SIGReg lambda 0.05 (Balestriero and LeCun 2025)
+    noreg_weights: {var: 0.0, cov: 0.0, sigreg: 0.0}   # RQ1 ablation
+    vicreg_gamma: 1.0                  # target standard deviation of each latent dimension
+    sigreg_t_max: 3.0                  # Epps-Pulley integration range [0, t_max], weight exp(-t^2/2)
+    sigreg_knots: 17
+  supervised:
+    epochs: 150                        # over training cases (encoder + operator head trained end to end)
+    batch_cases: 256
+    lr: 1.0e-3
+    weight_decay: 1.0e-4
+  operator:
+    epochs: 200                        # over training cases, frozen latents
+    batch_cases: 256
+    lr: 1.0e-3
+    weight_decay: 1.0e-4
+    warmup_fraction: 0.03
+    cp_loss_weight: 1.0                # loss = MSE(standardized CL, CD, CM) + w * MSE(standardized Cp)
+    eval_every_epochs: 5               # validation loss; the best validation checkpoint is kept
+  decoder:
+    epochs: 2000                       # over training wings
+    batch_wings: 256
+    lr: 1.0e-3
+    weight_decay: 1.0e-4
+    eval_every_epochs: 20
+  # Schedule check (smoke run 22 Oct 2026, T4): 0.081 s/step JEPA, 0.093 supervised, 0.063 operator, 0.005 decoder;
+  # projected 8.19 h for 3 seeds of all variants plus the OOD model. The user kept the full schedule below.
+  training:
+    amp: true                          # fp16 autocast + GradScaler (T4 has no bf16)
+    checkpoint_every_s: 120            # resumable checkpoints on Drive
+  conformal:
+    gamma_grid: {start: 0.0, stop: 1.5, num: 31}   # sigma(z) = exp(gamma * u), u = (D_M^2 - d) / sqrt(2 d)
+    coverage_window: [0.93, 0.97]      # pass window for test coverage per Mach bin (wing-weighted, primary)
+  variants: [jepa, jepa_noreg, supervised, params]  # params = reference operator on the 38 standardized
+                                                    #  configs.dat parameters (no encoder, no latent gate)
+  ood_variant: jepa
+task4:
+  # Added 23 Oct 2026 (PLAN v2.3, section 12), before any Task 4 experiment. Change PLAN.md and this block together.
+  generation_space: params            # generator works on the 38 standardised configs.dat parameters
+  param_trust_gate: 61.16             # chi2(38, 0.99), Ledoit-Wolf on standardised parameters of fit wings
+  jepa_ft:
+    init: task3 jepa encoder of the same seed (encoder.pt "model")
+    schedule: task3.supervised        # same epochs, batch, lr, weight decay as the supervised encoder
+    # (Task 4 session 1) pipeline = the supervised variant's: encoder + head end to end (best validation
+    # checkpoint), frozen latents, operator (task3.operator), evaluate. No surface decoder (PLAN v2.3).
+    # At budget f < 1 the init is the budget-f JEPA encoder of the same seed (pretrained on the same subset).
+  budget_study:
+    fractions: [0.05, 0.10, 0.25, 0.50]   # of Task 3 training wings (all their cases); validation wings unchanged
+    subset_seed: 300                  # nested subsets: one permutation of training wings, prefixes of it
+    applies_to_pretraining: true      # JEPA pretraining sees only the same subset (Cp comes from the same CFD runs)
+    methods: [params, supervised, jepa_ft, jepa]   # jepa = frozen JEPA + operator (reference)
+    min_optimizer_steps: 2000         # per training loop: full-schedule epochs, raised until >= this many steps
+    # (Task 4 session 1) subset size = round(f x n_train_wings); the full budget (f = 1) reuses the Task 3 runs of
+    # params, supervised and jepa; feature, Cp, coefficient and parameter standardisation use the subset wings only.
+    # Steps per run: encoder (if any), latents, operator, evaluate (no surface decoder, PLAN v2.3).
+  decision_rule:
+    metric: cd_mae_counts             # validation wings, mean over seeds 0, 1, 2
+    full_budget_ratio: 1.05           # jepa_ft wins if CD MAE <= 1.05 x supervised at full budget, or
+    small_budget_max_fraction: 0.25   #  at some fraction <= 0.25 it is lower by more than the seed std of the paired difference
+    paired_std_ddof: 1                # (Task 4 session 1, before any run) sample std over seeds of supervised - jepa_ft
+    require_all_seeds: true           # a missing or failed run makes the decision "undetermined" (no fallback)
+  titles:                             # PLAN header (v2.3); chosen only by decision_rule
+    jepa_wins: "JEPA-pretrained encoders for label-efficient, conformally calibrated inverse design of transonic wings"
+    otherwise: "Do JEPA representations help transonic wing inverse design? A conformally calibrated, CFD-verified study"
+  calibration_analysis:
+    bootstrap_resamples: 1000         # over test wings, for 95% intervals of wing-weighted coverage
+    bootstrap_seed: 400
+    drop_scaling_if: {gamma_max: 0.25, width_change_max: 0.05}   # evaluated on calibration half A only
+    # (Task 4 session 1, before any run) width change = |w(gamma_A) - w(0)| / w(0), w = wing-weighted mean
+    # half-width on calibration half A with quantiles also from half A (task3.conformal_run curve). The rule is
+    # applied per variant over all coefficients and seeds (all must satisfy it); if it holds, the final intervals
+    # use gamma = 0 and quantiles from all calibration wings (halves A + B). params has no latent: gamma = 0.
+    variants: [jepa, jepa_noreg, supervised, params, jepa_ft]
+    bootstrap_percentiles: [2.5, 97.5]
+  param_gate:
+    # (Task 4 session 1) experiment D and the design trust gate. Standardisation (mean, std ddof 0) and the
+    # Ledoit-Wolf fit use the fit wings (Task 3 train + val). Threshold = task4.param_trust_gate.
+    # OOD protocol (as Task 3 jepa_ood): refit on fit wings minus the high-sweep tail (data.ood_split), then
+    # AUROC of D_M^2 (tail wings vs in-distribution test wings).
+    fit_population: fit
+  guidance_surrogate_candidates: [params, supervised, jepa_ft]
+  generator:
+    # (Task 4 session 1, fixed before any generator run)
+    space: [38 standardised configs.dat parameters, standardised AoA]   # 39-D; AoA = operating point that reaches CL
+    condition: [mach, cl_solver]       # standardised on training cases
+    data: task3 train-wing cases       # validation-wing cases give the validation loss (best checkpoint)
+    model: {width: 512, blocks: 4, time_features: 64}
+    ot_pairing: hungarian              # minibatch exact OT; noise rows are permuted, every target keeps its own condition
+    ot_condition_weight: 100.0         # (revised 23 Oct 2026, before any real run) cost = |x0 - x1|^2 + w |c0 - c1|^2, c0 = a
+                                       #  random draw of the batch conditions carried by the noise rows (condition-aware OT,
+                                       #  Kerrigan et al. 2024). Plain OT (w = 0) biased the noise given the condition: 2-D toy
+                                       #  mode accuracy 0.920 (100 epochs) / 0.936 (300) vs 0.998 with w = 10 or 100 (CI run
+                                       #  40015680291, tools/t4_toy_diag.py). Fixed on the toy only, never on SuperWing data.
+    teacher: {epochs: 300, batch_cases: 256, lr: 1.0e-3, weight_decay: 1.0e-4, warmup_fraction: 0.03,
+              eval_every_epochs: 10}
+    student: {pairs_per_case: 8, epochs: 60, batch_cases: 1024, lr: 1.0e-3, weight_decay: 1.0e-4,
+              warmup_fraction: 0.03, eval_every_epochs: 5}   # rectified flow on (noise, teacher 40-step endpoint) pairs
+    steps: {teacher: 40, student: 4}   # Euler steps, t from 0 (noise) to 1 (data)
+    amp: false                         # the generator is a small MLP; fp32 throughout
+    eval:
+      n_per_design_point: 512
+      noise_seed: 500                  # same noise for every sampler (paired comparison)
+      val_conditions: all validation-wing cases, one sample each
+      sliced_wasserstein_projections: 256
+    latency: {batch_sizes: [1, 512], repeats: 50, warmup: 5}   # torch.cuda.synchronize around every call
+  validity:
+    # (Task 4 session 1) a generated wing is valid if conflow.geometry.build_surface gives finite nodes, chord > 0
+    # at every span station and local thickness (upper - lower, untwisted section) > 0 at every interior chord point
+    # and span station. In range: every one of the 38 parameters within [min, max] of the fit wings and AoA within
+    # data.flow.aoa_range_deg. Trust: parameter D_M^2 <= task4.param_trust_gate.
+    range_population: fit
+  verification:
+    toy_fm:                            # tests/test_t4_generator.py (2-D Gaussian mixture, 8 modes, 2 conditions)
+      mode_accuracy_min: 0.95          # fraction of samples nearest a mode of their condition
+      mode_frequency_tol: 0.05         # each allowed mode within 1/4 +- tol
+      sliced_w1_max: 0.25              # teacher 40 steps vs exact samples (mode radius 4, mode std 0.3)
+      student_vs_teacher_rmse_max: 0.5 # paired endpoints, same noise; student 4 steps vs teacher 40 steps
+      student_mode_accuracy_min: 0.90
+  design:
+    # (Task 4, written in session 1 before any design run; may be revised in session 2 before the design stage)
+    n_candidates: 512                  # per (cohort, design point, seed), identical for every cohort
+    guidance_scales: [0.25, 0.5, 1.0, 2.0]   # guided cohorts: candidates split equally over these scales (no tuning)
+    guidance_weights: {cl: 1.0, trust: 1.0, tcroot: 1.0}   # J = CD_obj / sd_CD + w_cl ((CL - CL*) / sd_CL)^2
+                                       #   + w_tcroot relu(tcroot_min - tcroot) / sd_tcroot + w_trust relu(D_M^2 - thr) / thr
+    trim: {bisection_iters: 40}        # AoA in data.flow.aoa_range_deg solved by bisection so that surrogate CL = CL*;
+                                       #  a candidate whose CL* is not bracketed is infeasible (one function, all cohorts)
+    knn_population: fit                # retrieval: fit-wing cases nearest to (M*, CL*) in standardised (Mach, CL)
+    constraint_sources:                # values read from results/task1_data.json (fit wings)
+      ixx_root: wing_box_ixx.value.fit_wings_quantiles.root.q25
+      abs_cm: abs_cm_solver_p95_fit.value
+    timing: {repeats: 10, warmup: 2}   # candidate generation per cohort, generator.time_call
+  reference_area:
+    # (Task 4 session 2, 25 Oct 2026, before any design run or CFD) SU2 force normalisation of generated wings; rule in
+    # src/conflow/refarea.py: smallest mean |rel. error| vs index s_ref_half on fit wings among the geometric candidates
+    # and one regression correction (5-fold CV); test-wing errors reported.
+    n_folds: 5
+    seed: 600
+  cfd:
+    # (Task 4 session 2, 25 Oct 2026, before any design run or CFD; G1 = EULER)
+    set: {seed: 0, points: all, cohorts: all}   # 6 x 5 = 30 wings; a cell without a feasible design is listed as
+                                                #  "no design" (no case), never replaced
+    flow: {mach: design point Mach, aoa: trimmed AoA of the selected design (surrogate CL = CL*)}
+    mesh: {type: euler_tetra, size_factor: 1.0}  # cfd.mesh3d_euler, the Task 2 held-out-wing settings
+    ref: {area: task4.reference_area rule, length: 1.0, moment_ref: [0.25, 0.0, 0.0]}
+    comparison:
+      # CL, CM and Cp compared directly; CD only as differences between cohorts at the same design point
+      cl_cm: surrogate at (params, Mach, AoA) minus SU2 history final value (forces / reference area rule)
+      cp: RMS over the 64 x 128 reduced built-grid cells, SU2 Cp mapped by cfd.map_surface_to_grid (k = 4)
+      cd_baseline_cohort: knn          # delta_c = CD_c - CD_knn at the same point and seed, SU2 and surrogate;
+                                       #  exploitation_c = delta_c(surrogate) - delta_c(SU2), counts
+      unconverged: reported with status and excluded from comparison means (listed)
+    grid_study:
+      design: {seed: 0, point: 3, cohort: guided_t40}   # M 0.82 / CL p60; if that cell has no design, the first cohort
+                                                        #  in registry order with one (recorded)
+      size_factors: [1.0, 0.75, 0.5625]                # medium = the set's mesh; target cell ratio about 2.0 to 2.8
+      cell_size: "h = (V / N)^(1/3), V = far-field half-box volume (cfd.cell_size)"
+      quantities: [CL, CD, CM]                         # SU2 history final values; Celik et al. 2008, no clipping
+  cfd_set: {seed: 0, solver: euler, n_wings: 30}   # 6 design points x 5 cohorts, fixed before any CFD run
+  rans_spot_check:                    # OPTIONAL (user, 23 Oct 2026); supplementary, never changes G1 or the Euler results
+    run_only_if: time and GitHub Actions minutes remain after the Euler set and the grid study
+    precondition: the fixed RANS mesh first reproduces the Task 2 held-out wing (spec cfd.superwing_holdout) converged
+                  and within cfd.gates.G1 cl_tol / cd_tol_counts of ADflow; otherwise report "not run" with the numbers
+    designs: {seed: 0, mach: 0.82, cl_percentile: 60, cohorts: [guided_t40, knn, meanguided]}   # fixed before any Euler result
+    mesh_fixes_to_try: [smooth prism-to-tetra size transition, 44 prism layers, finer surface (chord_stride 1)]
+    max_segments_jobs: 4               # = cfd.runner.max_segments_jobs; a capped run is reported as unconverged

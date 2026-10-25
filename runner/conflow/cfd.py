@@ -1126,6 +1126,8 @@ def prepare_case(case: dict, work, log=print) -> dict:
       su2_testcase  mesh file from github.com/su2code/TestCases at a pinned commit
       rae_ogrid     airfoil taken from a TestCases mesh marker, new O-grid (spec cfd.mesh2d_ogrid)
       superwing     held-out SuperWing wing (spec cfd.superwing_holdout) from Hugging Face, gmsh mesh
+      design        Task 4 design: wing built from its 38 parameters (conflow.geometry), gmsh Euler mesh; Mach, AoA and
+                    reference area from the case file (case["design"])
     Returns the 'prepared' record (provenance, mesh statistics, solver inputs)."""
     from . import data as _data
     work = Path(work)
@@ -1187,6 +1189,21 @@ def prepare_case(case: dict, work, log=print) -> dict:
         prep["mesh3d"] = st
         prep["mesh_file"] = "mesh.su2"
         prep["flow"] = dict(mach=row["mach"], aoa=row["aoa"], ref_area=row["s_ref_half"])
+    elif kind == "design":
+        from . import geometry as _geom
+        d = case["design"]
+        p = np.asarray(d["params"], float)
+        if p.shape != (38,) or not np.all(np.isfinite(p)):
+            raise ValueError("design case needs 38 finite parameters")
+        surf = _geom.build_surface(p)
+        np.save(work / "surface_builder.npy", surf)
+        if case["mesh"]["type"] != "euler_tetra":
+            raise ValueError(f"design cases use euler_tetra meshes, got {case['mesh']['type']}")
+        st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+        prep["mesh3d"] = st
+        prep["mesh_file"] = "mesh.su2"
+        prep["design"] = {k: v for k, v in d.items() if k != "params"}
+        prep["flow"] = dict(mach=float(d["mach"]), aoa=float(d["aoa_deg"]), ref_area=float(d["ref_area"]))
     else:
         raise ValueError(f"unknown case kind {kind}")
     from .records import sha256_file
@@ -1569,3 +1586,54 @@ def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_laye
                 n_wall_tris=int(len(T)), ring_nodes=m, span_rows=w["rows"], reynolds=reynolds, yplus_target=yplus,
                 radius=radius, mesh_seconds=time.time() - t0, gmsh_version=gversion,
                 tet_min_volume=float(np.abs(tv).min() / 6.0))
+
+
+# ============================================================================= grid study (Task 4)
+
+def cell_size(n_cells: int, volume: float) -> float:
+    """Representative 3D cell size h = (volume / N)^(1/3) (Celik et al. 2008, eq. 1)."""
+    return float((float(volume) / float(n_cells)) ** (1.0 / 3.0))
+
+
+def celik_gci(h, phi, max_iter: int = 500, tol: float = 1e-12) -> dict:
+    """Celik et al. (2008) procedure on three grids, h[0] < h[1] < h[2] (fine to coarse), solution phi.
+    Observed order p from p = |ln|e32/e21| + q(p)| / ln r21, q(p) = ln((r21^p - s) / (r32^p - s)), s = sign(e32/e21),
+    solved by fixed-point iteration (with a bracketing root solve if the iteration does not settle). The order is
+    reported as computed: no clipping or bounds. Returns p, extrapolated value, relative errors and GCI_fine21."""
+    from scipy.optimize import brentq
+    h, phi = np.asarray(h, np.float64), np.asarray(phi, np.float64)
+    if h.shape != (3,) or phi.shape != (3,) or not (h[0] < h[1] < h[2]):
+        raise ValueError("celik_gci needs three grids ordered fine to coarse (h1 < h2 < h3)")
+    r21, r32 = h[1] / h[0], h[2] / h[1]
+    e21, e32 = phi[1] - phi[0], phi[2] - phi[1]
+    base = dict(h=h.tolist(), phi=phi.tolist(), r21=float(r21), r32=float(r32), e21=float(e21), e32=float(e32))
+    if e21 == 0.0 or e32 == 0.0:
+        return dict(base, p=None, s=None, oscillatory=None, phi_ext21=None, e_a21=None, e_ext21=None, gci_fine21=None,
+                    note="zero difference between two grids: observed order undefined")
+    ratio = e32 / e21
+    s = float(np.sign(ratio))
+    q = lambda p: math.log((r21 ** p - s) / (r32 ** p - s))
+    f = lambda p: abs(math.log(abs(ratio)) + q(p)) / math.log(r21)
+    p, method, ok = f(1.0) if s > 0 else abs(math.log(abs(ratio))) / math.log(r21), "fixed_point", False
+    try:
+        for _ in range(max_iter):
+            pn = f(p)
+            if abs(pn - p) < tol:
+                p, ok = pn, True
+                break
+            p = pn
+    except (ValueError, ZeroDivisionError, OverflowError):
+        ok = False
+    if not ok:
+        try:
+            p, method = brentq(lambda x: x - f(x), 1e-8, 50.0, xtol=tol), "brentq"
+            ok = True
+        except (ValueError, ZeroDivisionError, OverflowError) as e:
+            return dict(base, p=None, s=s, oscillatory=bool(s < 0), phi_ext21=None, e_a21=None, e_ext21=None,
+                        gci_fine21=None, note=f"observed order not found: {e}")
+    rp = r21 ** p
+    ext = (rp * phi[0] - phi[1]) / (rp - 1.0)
+    ea = abs((phi[0] - phi[1]) / phi[0])
+    return dict(base, p=float(p), p_method=method, s=s, oscillatory=bool(s < 0), phi_ext21=float(ext), e_a21=float(ea),
+                e_ext21=float(abs((ext - phi[0]) / ext)), gci_fine21=float(1.25 * ea / (rp - 1.0)),
+                note="Celik et al. 2008, J. Fluids Eng. 130(7) 078001; order not clipped")

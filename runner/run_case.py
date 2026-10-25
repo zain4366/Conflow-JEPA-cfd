@@ -70,7 +70,7 @@ def write_out(case, work: Path, out: Path, st: dict, prep: dict, extra: dict):
     rec.update(extra)
     if any(work.glob("history_seg*.csv")):
         cfd.merged_history_csv(work, out / "history.csv")
-    for name in ("surface_flow.csv", "surface_origingeom.npy", "cp_adflow_cells.npy"):
+    for name in ("surface_flow.csv", "surface_origingeom.npy", "cp_adflow_cells.npy", "surface_builder.npy"):
         if (work / name).exists():
             shutil.copy2(work / name, out / name)
     if prep and (work / prep["mesh_file"]).exists() and not (out / "wall_faces.npy").exists():
@@ -144,7 +144,7 @@ def main() -> int:
                 adflow=dict(cl_solver=sw["cl_solver"], cd_solver=sw["cd_solver"], cm_solver=sw["cm_solver"],
                             cl_surface=sw["cl_surface"], cd_surface=sw["cd_surface"], cm_surface=sw["cm_surface"]),
                 cp_rmse_vs_adflow=c["cp_rmse_vs_ref"],
-                note="SU2 Euler (inviscid) vs ADflow RANS-SA; differences are reported, not corrected")
+                note=f"SU2 {case['solver']} vs ADflow RANS-SA; differences are reported, not corrected")
     except Exception as e:  # every failure is recorded in status.json and reported
         st["status"] = "failed"
         st["stop_reason"] = f"{type(e).__name__}: {e}"

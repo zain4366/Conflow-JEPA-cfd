@@ -29,6 +29,8 @@ from scipy.interpolate import CubicSpline
 from . import data as _data
 from .spec import load_spec
 
+_trapezoid = getattr(np, "trapezoid", None) or getattr(np, "trapz")   # NumPy 2 name, NumPy 1 fallback
+
 _SPEC = load_spec()
 _B = _SPEC["geometry"]["builder"]
 _BOX = _SPEC["geometry"]["wing_box"]
@@ -195,9 +197,9 @@ def box_ixx(x, yu, yl, chord, x_front=_BOX["front_spar_xc"], x_rear=_BOX["rear_s
     the spars, in root-chord^4 units: I = int (yu^3 - yl^3)/3 dx - A * ybar^2, scaled by chord^4."""
     xs = np.linspace(x_front, x_rear, n)
     u, l = np.interp(xs, x, yu), np.interp(xs, x, yl)
-    a = np.trapezoid(u - l, xs)
-    ybar = np.trapezoid(0.5 * (u ** 2 - l ** 2), xs) / a
-    i0 = np.trapezoid((u ** 3 - l ** 3) / 3.0, xs)
+    a = _trapezoid(u - l, xs)
+    ybar = _trapezoid(0.5 * (u ** 2 - l ** 2), xs) / a
+    i0 = _trapezoid((u ** 3 - l ** 3) / 3.0, xs)
     return float((i0 - a * ybar ** 2) * chord ** 4)
 
 

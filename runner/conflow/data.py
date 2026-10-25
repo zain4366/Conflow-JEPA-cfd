@@ -510,3 +510,69 @@ def cm_reference_check(red: dict, n_cases: int, seed: int) -> dict:
     best = min(res, key=res.get)
     return dict(n_cases=int(n_cases), seed=int(seed), mae_by_candidate=res, best=best,
                 best_mae=res[best], cm_ref_abs_mean=float(np.mean(np.abs(ref))))
+
+
+# ----------------------------------------------------------------------------- Task 3 wing splits
+
+def task3_splits(red: dict, spec: dict) -> dict:
+    """Wing rows (configs.dat rows) of the Task 3 splits, from the npz split codes:
+    train / val (val = seeded draw from the fit wings), calib (calib_a fits gamma, calib_b sets the
+    conformal quantiles) and test. Every array is sorted."""
+    t = spec["task3"]["splits"]
+    rows, code = np.asarray(red["case_wing_row"]), np.asarray(red["split_code"])
+    per = {}
+    for c in (SPLIT_FIT, SPLIT_CALIB, SPLIT_TEST):
+        per[c] = np.unique(rows[code == c])
+    if len(np.intersect1d(per[SPLIT_FIT], per[SPLIT_CALIB])) or len(np.intersect1d(per[SPLIT_FIT], per[SPLIT_TEST])) \
+            or len(np.intersect1d(per[SPLIT_CALIB], per[SPLIT_TEST])):
+        raise ValueError("a wing has cases in more than one split")
+    fit = per[SPLIT_FIT]
+    n_val = int(round(t["val_fraction_of_fit_wings"] * len(fit)))
+    val = np.sort(np.random.default_rng(t["val_seed"]).choice(fit, size=n_val, replace=False))
+    cal = per[SPLIT_CALIB]
+    n_a = int(round(t["calib_gamma_fraction"] * len(cal)))
+    cal_a = np.sort(np.random.default_rng(t["calib_gamma_seed"]).choice(cal, size=n_a, replace=False))
+    return dict(train=np.setdiff1d(fit, val), val=val, calib=cal, calib_a=cal_a,
+                calib_b=np.setdiff1d(cal, cal_a), test=per[SPLIT_TEST])
+
+
+def ood_split(red: dict, spec: dict, s: dict) -> dict:
+    """Outer-tail OOD split (spec task3.ood): threshold from fit + calibration wings, tail wings removed
+    from train, val and both calibration halves; id_test = test wings below the threshold."""
+    o = spec["task3"]["ood"]
+    if o["tail"] != "upper" or o["threshold_population"] != "fit+calib":
+        raise ValueError(f"unsupported OOD setting {o}")
+    p = np.asarray(red["params"])[:, list(GEOM_NAMES).index(o["parameter"])]
+    pop = np.concatenate([s["train"], s["val"], s["calib"]])
+    thr = float(np.quantile(p[pop], o["quantile"]))
+    tail = np.where(p >= thr)[0]
+    keep = lambda a: np.setdiff1d(a, tail)
+    return dict(threshold=thr, parameter=o["parameter"], tail=tail, train=keep(s["train"]), val=keep(s["val"]),
+                calib_a=keep(s["calib_a"]), calib_b=keep(s["calib_b"]), id_test=keep(s["test"]),
+                tail_test=np.intersect1d(tail, s["test"]))
+
+
+# ----------------------------------------------------------------------------- Task 4 CFD-budget subsets
+
+def budget_subsets(train_wings, fractions, seed: int) -> dict:
+    """Nested CFD-budget subsets (spec task4.budget_study): one seeded permutation of the sorted training wings;
+    the subset for fraction f is its first round(f * n) wings (sorted). Prefixes of the same permutation, so
+    smaller budgets are contained in larger ones whatever fraction list is asked for."""
+    w = np.sort(np.asarray(train_wings, np.int64))
+    perm = np.random.default_rng(seed).permutation(w)
+    out = {}
+    for f in fractions:
+        f = float(f)
+        if not 0.0 < f <= 1.0:
+            raise ValueError(f"budget fraction must be in (0, 1], got {f}")
+        n = int(round(f * len(w)))
+        if n < 1:
+            raise ValueError(f"budget fraction {f} leaves no training wing (n = {len(w)})")
+        out[f] = np.sort(perm[:n])
+    return out
+
+
+def budget_split(s: dict, fraction: float, spec: dict) -> dict:
+    """Task 3 splits with the training wings replaced by the budget subset; val, calib and test unchanged."""
+    sub = budget_subsets(s["train"], [fraction], spec["task4"]["budget_study"]["subset_seed"])[float(fraction)]
+    return dict(s, train=sub)
