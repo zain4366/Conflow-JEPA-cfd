@@ -1,0 +1,210 @@
+{
+ "case": "t4e_p4_unguided",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 500,
+  "residual_drop_orders": 5.916556584,
+  "cl_change_window": 1.3105000000179778e-06,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 387.352979183197,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 500,
+   "iters_logged": 500,
+   "wall_s": 387.352979183197,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 0.74602101,
+  "seconds_per_iter_mean": 0.7519452045252525,
+  "startup_s_median": 10.311540843197065,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "design",
+  "downloads": {},
+  "mesh3d": {
+   "n_cells": 789690,
+   "n_wall_nodes": 61639,
+   "loft_rows": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    41,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    108,
+    112,
+    116,
+    120,
+    124,
+    128
+   ],
+   "kink_row": 41,
+   "loft_volume": 0.10995957875676142,
+   "closed_surface_volume": 0.10979214095940464,
+   "wall_to_data_max": 0.003569975319946748,
+   "wall_to_data_rms": 9.646585311618373e-05,
+   "y_symmetry": -0.339901804246858,
+   "size_factor": 1.0,
+   "radius": 50.0,
+   "mesh_seconds": 189.01022601127625,
+   "gmsh_version": "4.15.2",
+   "options": {
+    "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
+    "loft_span_stride": 4,
+    "size_min": 0.0015,
+    "size_wing_max": 0.012,
+    "size_far": 5.0,
+    "curvature_points": 40
+   }
+  },
+  "mesh_file": "mesh.su2",
+  "design": {
+   "mach": 0.85,
+   "aoa_deg": 4.2195575237265075,
+   "ref_area": 2.1126269921692544,
+   "point": 4,
+   "cohort": "unguided",
+   "seed": 0,
+   "params_sha": "3dd6c1c5557e6895"
+  },
+  "flow": {
+   "mach": 0.85,
+   "aoa": 4.2195575237265075,
+   "ref_area": 2.1126269921692544
+  },
+  "mesh_sha256": "9fa360e864b3374f729726b68c0e8a275f434de0a7f91dda3bbbf8029bf411d8",
+  "mesh_bytes": 41088167,
+  "mesh_cells": 789690,
+  "prepare_s": 189.44489526748657
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000383"
+ },
+ "case_definition": {
+  "name": "t4e_p4_unguided",
+  "kind": "design",
+  "solver": "euler",
+  "mesh": {
+   "type": "euler_tetra",
+   "size_factor": 1.0
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "design": {
+   "params": [
+    36.18090709616466,
+    5.121835086470469,
+    2.8169175539368694,
+    10.602121992627804,
+    0.2823915985241786,
+    0.3901471115516434,
+    0.8222057494780624,
+    0.6241885408424964,
+    0.94698588040107,
+    0.9550368519730352,
+    0.3976630911427824,
+    0.572993920254993,
+    0.6988268867099057,
+    -2.2266296317779926,
+    -1.9041957066832502,
+    -2.0522465897047435,
+    -2.111074796353082,
+    0.16051989633181887,
+    0.09707432312386677,
+    0.18904690298482507,
+    0.0908194646745854,
+    0.23844842377394332,
+    0.043105317896299775,
+    0.27558170311161695,
+    0.14377084510980098,
+    0.23217190808617405,
+    0.2573696463795693,
+    -0.12834853470081214,
+    -0.038250350421123985,
+    -0.21874514479753032,
+    0.04353893395904723,
+    -0.30514055023918213,
+    0.0029713211188149586,
+    -0.19750683639434985,
+    -0.09552948838840188,
+    0.06964715848851023,
+    0.22707734432153437,
+    0.1453456383081371
+   ],
+   "mach": 0.85,
+   "aoa_deg": 4.2195575237265075,
+   "ref_area": 2.1126269921692544,
+   "point": 4,
+   "cohort": "unguided",
+   "seed": 0,
+   "params_sha": "3dd6c1c5557e6895"
+  },
+  "note": "ConFlow-JEPA Task 4 design wing (SuperWing family, built from 38 parameters), SU2 Euler"
+ },
+ "runner_commit": "c49faca8c013de1223c9a399a8b2df744f5fcaac",
+ "run_id": "40189757820",
+ "jobs": [
+  {
+   "job_start": 1792928361.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-25T11:49:16Z"
+}
