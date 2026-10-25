@@ -1,0 +1,166 @@
+{
+ "run_id": "40189757820",
+ "created_utc": "2026-10-25T12:27:04Z",
+ "cases": {
+  "t4e_p0_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p0_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p0_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p0_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p0_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p1_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p1_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p1_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p1_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p1_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p2_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p2_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p2_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p2_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p2_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p3_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p3_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p3_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p3_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p3_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p4_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p4_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p4_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p4_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p4_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p5_guided_t40": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p5_guided_s4": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p5_knn": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p5_unguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4e_p5_meanguided": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4g_f07500": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "t4g_f05625": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 1000
+  }
+ }
+}
