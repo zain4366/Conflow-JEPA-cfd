@@ -1,0 +1,10 @@
+{
+ "run_id": "40191743298",
+ "created_utc": "2026-10-25T18:24:16Z",
+ "cases": {
+  "sw_holdout_rans_t4": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  }
+ }
+}
