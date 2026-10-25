@@ -1,1 +1,1 @@
-returncode=0
+returncode=1

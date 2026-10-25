@@ -1,2 +1,30 @@
-...........................................                              [100%]
-43 passed in 112.74s (0:01:52)
+...........................F................                             [100%]
+=================================== FAILURES ===================================
+_________________________ test_rans_mesh_task4_options _________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_rans_mesh_task4_options0')
+
+    @pytest.mark.skipif(not __import__("os").environ.get("CONFLOW_SLOW"), reason="RANS mesh test; set CONFLOW_SLOW=1")
+    def test_rans_mesh_task4_options(tmp_path):
+        """Task 4 RANS mesh fixes (spec task4.rans_spot_check.mesh): HXT tetra fill, graded prism-to-tetra transition,
+        builder surface with the blunt TE collapsed. Coarse settings for speed."""
+        from test_t4_design_case import design_params
+        s = cfd.sharpen_te(geometry.build_surface(design_params()))
+        assert np.allclose(s[:, :, 0], s[:, :, -1])
+        plain = cfd.wing_mesh_3d_rans(s, tmp_path / "a.su2", reynolds=2e7, span_stride=8, chord_stride=4, radius=20.0,
+                                      n_radial=30, n_rings=8, last_layer_chords=0.01, algorithm3d=10, n_threads=2)
+        graded = cfd.wing_mesh_3d_rans(s, tmp_path / "b.su2", reynolds=2e7, span_stride=8, chord_stride=4, radius=20.0,
+                                       n_radial=30, n_rings=8, last_layer_chords=0.01, algorithm3d=10, n_threads=2,
+                                       transition_slope=0.2)
+        for f, st in (("a.su2", plain), ("b.su2", graded)):
+            m = cfd.read_su2_mesh(tmp_path / f)
+            assert set(m.markers) == {"wing", "symmetry", "farfield"} and m.n_elements == st["n_cells"]
+>           assert np.all(cfd.tet_volumes(m) > 0)
+E           assert np.False_
+E            +  where np.False_ = <function all at 0x7f62c2f71fb0>(array([4.05247010e-04, 2.32021213e+00, 1.57288282e-04, ...,\n       1.43794874e+00, 9.05868614e-01, 6.25152355e+00], shape=(21992,)) > 0)
+E            +    where <function all at 0x7f62c2f71fb0> = np.all
+E            +    and   array([4.05247010e-04, 2.32021213e+00, 1.57288282e-04, ...,\n       1.43794874e+00, 9.05868614e-01, 6.25152355e+00], shape=(21992,)) = <function tet_volumes at 0x7f629c4f1080>(Su2Mesh(dim=3, points=array([[ 1.27058821, -0.296875  ,  0.02361784],\n       [ 1.26191826, -0.296875  ,  0.01980769],\n...     ...,\n       [53056, 53054, 53053],\n       [53056, 53055, 53054],\n       [53056, 52992, 53055]], shape=(960, 3))}}))
+E            +      where <function tet_volumes at 0x7f629c4f1080> = cfd.tet_volumes
+
+tests/test_t2_mesh3d.py:89: AssertionError
+1 failed, 43 passed in 339.89s (0:05:39)
