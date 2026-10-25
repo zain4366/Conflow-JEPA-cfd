@@ -402,7 +402,10 @@ task4:
       chord_stride: 1                  # finer surface (256 nodes around the section)
       last_layer_chords: 0.01          # 44 layers planned at Re 2e7 (as Task 2; Task 2 built 38)
       transition_slope: 0.2            # tetra size <= 1.2 x last-layer height + 0.2 x distance from the prism top
-      algorithm3d: 10                  # gmsh HXT (Task 2 Delaunay fill took 5.4 h for 69k tetrahedra)
+      algorithm3d: 1                   # gmsh Delaunay. HXT (10) was tried first and left one sliver tetrahedron with
+                                       #  negative volume (-1e-14) on a coarse built wing, with and without grading;
+                                       #  Delaunay: 0 non-positive, 48 s with grading (runner tests run of 25 Oct, before
+                                       #  any RANS run). Task 2's 5.4 h Delaunay fill had no grading.
       n_threads: 4
     design_te: builder TE base (0.004c) collapsed to its midpoint (cfd.sharpen_te); the Euler set keeps the blunt TE
     gate: {cl_tol: 0.03, cd_tol_counts: 25.0, compared_with: ADflow cl_solver / cd_solver of the held-out case,
