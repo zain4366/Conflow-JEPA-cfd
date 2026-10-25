@@ -6,7 +6,7 @@ set -euo pipefail
 OUT=$(realpath "$1"); CASE=$2; RUN=$3
 URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 D=$(mktemp -d)
-for attempt in 1 2 3 4 5; do
+for attempt in $(seq 1 12); do
   rm -rf "$D/res"
   if git ls-remote --exit-code --heads "$URL" results >/dev/null 2>&1; then
     git clone -q --depth 1 -b results "$URL" "$D/res"
@@ -22,6 +22,6 @@ for attempt in 1 2 3 4 5; do
   git add -A
   git commit -q -m "SU2 $CASE, run $RUN" || { echo "nothing to commit"; exit 0; }
   if git push -q origin results; then echo "published $CASE"; exit 0; fi
-  cd /; sleep $((RANDOM % 20 + 5))
+  cd /; sleep $((RANDOM % 60 + 10 * attempt))
 done
-echo "publish failed after 5 attempts" >&2; exit 1
+echo "publish failed after 12 attempts (the collect job still commits this case from its artifact)" >&2; exit 1
