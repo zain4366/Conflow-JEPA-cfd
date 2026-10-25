@@ -1179,11 +1179,7 @@ def prepare_case(case: dict, work, log=print) -> dict:
         if case["mesh"]["type"] == "euler_tetra":
             st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
         elif case["mesh"]["type"] == "rans_hybrid":
-            mr = _CFD["mesh3d_rans"]
-            st = wing_mesh_3d_rans(surf, work / "mesh.su2", reynolds=float(case["flow"]["reynolds"]),
-                                   yplus=mr["yplus"], growth=mr["growth"], last_layer_chords=mr["last_layer_chords"],
-                                   span_stride=mr["span_stride"], chord_stride=mr["chord_stride"],
-                                   n_radial=mr["n_radial"], n_rings=mr["n_rings"], log=log)
+            st = _rans_mesh(surf, work / "mesh.su2", case, log)
         else:
             raise ValueError(f"unknown SuperWing mesh type {case['mesh']['type']}")
         prep["mesh3d"] = st
@@ -1197,9 +1193,13 @@ def prepare_case(case: dict, work, log=print) -> dict:
             raise ValueError("design case needs 38 finite parameters")
         surf = _geom.build_surface(p)
         np.save(work / "surface_builder.npy", surf)
-        if case["mesh"]["type"] != "euler_tetra":
-            raise ValueError(f"design cases use euler_tetra meshes, got {case['mesh']['type']}")
-        st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+        if case["mesh"]["type"] == "euler_tetra":
+            st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+        elif case["mesh"]["type"] == "rans_hybrid":
+            st = _rans_mesh(sharpen_te(surf), work / "mesh.su2", case, log)
+            st["te_collapsed"] = "builder TE base (0.004c) collapsed to its midpoint for the prism mesher"
+        else:
+            raise ValueError(f"unknown design mesh type {case['mesh']['type']}")
         prep["mesh3d"] = st
         prep["mesh_file"] = "mesh.su2"
         prep["design"] = {k: v for k, v in d.items() if k != "params"}
@@ -1213,6 +1213,22 @@ def prepare_case(case: dict, work, log=print) -> dict:
     prep["mesh_cells"] = _count_cells(m)
     prep["prepare_s"] = time.time() - t0
     return prep
+
+
+def _rans_mesh(surf, out, case, log):
+    """Prism/tetra RANS mesh with spec cfd.mesh3d_rans settings, overridden by case["mesh"]["overrides"] (Task 4)."""
+    mr = dict(_CFD["mesh3d_rans"])
+    ov = dict(case["mesh"]["overrides"]) if "overrides" in case["mesh"] else {}
+    unknown = set(ov) - set(mr) - {"algorithm3d", "n_threads", "transition_slope"}
+    if unknown:
+        raise ValueError(f"unknown RANS mesh overrides {sorted(unknown)}")
+    mr.update(ov)
+    return wing_mesh_3d_rans(surf, out, reynolds=float(case["flow"]["reynolds"]), yplus=mr["yplus"], growth=mr["growth"],
+                             last_layer_chords=mr["last_layer_chords"], span_stride=mr["span_stride"],
+                             chord_stride=mr["chord_stride"], n_radial=mr["n_radial"], n_rings=mr["n_rings"], log=log,
+                             algorithm3d=mr["algorithm3d"] if "algorithm3d" in mr else 1,
+                             n_threads=mr["n_threads"] if "n_threads" in mr else None,
+                             transition_slope=mr["transition_slope"] if "transition_slope" in mr else None)
 
 
 def _count_cells(path) -> int:
@@ -1497,12 +1513,26 @@ def _merge_gmsh_nodes(bnd_pts, used, gtags, gcoords, tol=1e-10):
     return allp, lut
 
 
+def sharpen_te(s_sw):
+    """Collapse a blunt trailing edge (builder surfaces, base 0.004c) to its midpoint: first and last chordwise
+    nodes of every span row are replaced by their mean (the RANS mesher needs a sharp TE)."""
+    s = np.array(s_sw, float, copy=True)
+    te = 0.5 * (s[:, :, 0] + s[:, :, -1])
+    s[:, :, 0] = te
+    s[:, :, -1] = te
+    return s
+
+
 def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_layer_chords=0.01,
-                      span_stride=2, chord_stride=2, radius=None, n_radial=40, n_rings=16, log=None) -> dict:
+                      span_stride=2, chord_stride=2, radius=None, n_radial=40, n_rings=16, log=None,
+                      algorithm3d=1, n_threads=None, transition_slope=None) -> dict:
     """Hybrid RANS mesh: prism layer extruded from the wall (first cell from the flat-plate y+
     estimate at the local chord Reynolds number, geometric growth until the layer height reaches
     `last_layer_chords` x local chord), then gmsh tetrahedra between the prism layer, the
-    symmetry-plane annulus and a farfield half-sphere. Markers: wing, symmetry, farfield."""
+    symmetry-plane annulus and a farfield half-sphere. Markers: wing, symmetry, farfield.
+    Task 4 options: algorithm3d (gmsh Mesh.Algorithm3D; 10 = HXT, parallel), n_threads, and transition_slope: if
+    set, the tetra size is also limited by s(d) = s0 + slope * d, d = distance from the outer prism surface,
+    s0 = growth x the median last-layer height (smooth prism-to-tetra size transition)."""
     import gmsh
     radius = float(_CFD["superwing_holdout"]["farfield_radius_root_chords"] if radius is None else radius)
     t0 = time.time()
@@ -1550,7 +1580,20 @@ def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_laye
         gmsh.model.geo.synchronize()
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 1)
         gmsh.option.setNumber("Mesh.MeshSizeMax", radius / 8)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        if n_threads:
+            gmsh.option.setNumber("General.NumThreads", int(n_threads))
+        s0 = None
+        if transition_slope:
+            from scipy.spatial import cKDTree
+            s0 = float(growth * last_h)
+            tree = cKDTree(X[-1])
+            slope, smax = float(transition_slope), float(radius / 8)
+
+            def size_cb(dim, tag, x, y, z, lc):
+                # exact distance to the outer prism-surface nodes; min with gmsh's own boundary-extended size
+                return float(min(lc, smax, s0 + slope * tree.query((x, y, z))[0]))
+            gmsh.model.mesh.setSizeCallback(size_cb)
+        gmsh.option.setNumber("Mesh.Algorithm3D", int(algorithm3d))
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.Renumber", 0)
         gmsh.model.mesh.generate(3)
@@ -1585,7 +1628,9 @@ def wing_mesh_3d_rans(s_sw, out_path, reynolds, yplus=1.0, growth=1.2, last_laye
                 prism_layer_thickness_root=float(np.linalg.norm(X[-1][w["root_ring"]] - X[0][w["root_ring"]], axis=1).mean()),
                 n_wall_tris=int(len(T)), ring_nodes=m, span_rows=w["rows"], reynolds=reynolds, yplus_target=yplus,
                 radius=radius, mesh_seconds=time.time() - t0, gmsh_version=gversion,
-                tet_min_volume=float(np.abs(tv).min() / 6.0))
+                tet_min_volume=float(np.abs(tv).min() / 6.0), algorithm3d=int(algorithm3d), n_threads=n_threads,
+                transition_slope=transition_slope, transition_s0=s0, span_stride=span_stride, chord_stride=chord_stride,
+                last_layer_median=last_h)
 
 
 # ============================================================================= grid study (Task 4)

@@ -396,3 +396,14 @@ task4:
     designs: {seed: 0, mach: 0.82, cl_percentile: 60, cohorts: [guided_t40, knn, meanguided]}   # fixed before any Euler result
     mesh_fixes_to_try: [smooth prism-to-tetra size transition, 44 prism layers, finer surface (chord_stride 1)]
     max_segments_jobs: 4               # = cfd.runner.max_segments_jobs; a capped run is reported as unconverged
+    # (Task 4 session 2, 25 Oct 2026, user decision "yes, try it"; fixed before any RANS run)
+    holdout_case: sw_holdout_rans_t4   # Task 2 held-out wing (cfd.superwing_holdout), numerics as sw_holdout_rans
+    mesh_overrides:                    # on top of cfd.mesh3d_rans; the three fixes of mesh_fixes_to_try plus a faster fill
+      chord_stride: 1                  # finer surface (256 nodes around the section)
+      last_layer_chords: 0.01          # 44 layers planned at Re 2e7 (as Task 2; Task 2 built 38)
+      transition_slope: 0.2            # tetra size <= 1.2 x last-layer height + 0.2 x distance from the prism top
+      algorithm3d: 10                  # gmsh HXT (Task 2 Delaunay fill took 5.4 h for 69k tetrahedra)
+      n_threads: 4
+    design_te: builder TE base (0.004c) collapsed to its midpoint (cfd.sharpen_te); the Euler set keeps the blunt TE
+    gate: {cl_tol: 0.03, cd_tol_counts: 25.0, compared_with: ADflow cl_solver / cd_solver of the held-out case,
+           requires: converged by cfd.convergence}

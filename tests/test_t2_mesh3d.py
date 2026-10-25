@@ -69,3 +69,23 @@ def test_rans_hybrid_mesh(tmp_path):
     assert set(m.markers) == {"wing", "symmetry", "farfield"}
     assert m.n_elements == st["n_cells"] and st["n_prisms"] > 0 and st["n_tets"] > 0
     assert np.all(cfd.tet_volumes(m) > 0)
+
+
+@pytest.mark.skipif(not __import__("os").environ.get("CONFLOW_SLOW"), reason="RANS mesh test; set CONFLOW_SLOW=1")
+def test_rans_mesh_task4_options(tmp_path):
+    """Task 4 RANS mesh fixes (spec task4.rans_spot_check.mesh): HXT tetra fill, graded prism-to-tetra transition,
+    builder surface with the blunt TE collapsed. Coarse settings for speed."""
+    from test_t4_design_case import design_params
+    s = cfd.sharpen_te(geometry.build_surface(design_params()))
+    assert np.allclose(s[:, :, 0], s[:, :, -1])
+    plain = cfd.wing_mesh_3d_rans(s, tmp_path / "a.su2", reynolds=2e7, span_stride=8, chord_stride=4, radius=20.0,
+                                  n_radial=30, n_rings=8, last_layer_chords=0.01, algorithm3d=10, n_threads=2)
+    graded = cfd.wing_mesh_3d_rans(s, tmp_path / "b.su2", reynolds=2e7, span_stride=8, chord_stride=4, radius=20.0,
+                                   n_radial=30, n_rings=8, last_layer_chords=0.01, algorithm3d=10, n_threads=2,
+                                   transition_slope=0.2)
+    for f, st in (("a.su2", plain), ("b.su2", graded)):
+        m = cfd.read_su2_mesh(tmp_path / f)
+        assert set(m.markers) == {"wing", "symmetry", "farfield"} and m.n_elements == st["n_cells"]
+        assert np.all(cfd.tet_volumes(m) > 0)
+    assert graded["n_tets"] > 2 * plain["n_tets"]                 # the graded field refines next to the prisms
+    assert graded["transition_s0"] == pytest.approx(1.2 * graded["last_layer_median"])
