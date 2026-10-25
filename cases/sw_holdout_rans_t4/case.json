@@ -1,0 +1,41 @@
+{
+ "kind": "superwing",
+ "solver": "rans_sa",
+ "hf": {
+  "repo": "yunplus/SuperWing",
+  "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
+ },
+ "mesh": {
+  "type": "rans_hybrid",
+  "overrides": {
+   "chord_stride": 1,
+   "last_layer_chords": 0.01,
+   "transition_slope": 0.2,
+   "algorithm3d": 1,
+   "n_threads": 4
+  }
+ },
+ "flow": {
+  "ref_length": 1.0,
+  "moment_ref": [
+   0.25,
+   0.0,
+   0.0
+  ],
+  "reynolds": 20000000.0,
+  "reynolds_length": 1.0,
+  "temperature": 300.0
+ },
+ "markers": {
+  "wall": "wing",
+  "far": "farfield",
+  "sym": "symmetry"
+ },
+ "note": "Task 4 RANS spot check, step 1: Task 2 held-out wing with the fixed RANS mesh (spec task4.rans_spot_check)",
+ "name": "sw_holdout_rans_t4",
+ "numerics": {
+  "scheme": "ROE",
+  "multigrid": 0,
+  "cfl": 4.0
+ }
+}
