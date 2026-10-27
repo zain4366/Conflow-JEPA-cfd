@@ -1,0 +1,26 @@
+{
+ "run_id": "40531797137",
+ "created_utc": "2026-10-27T15:59:56Z",
+ "cases": {
+  "rt1_fix_a0_wall075": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_fix_a0_sharp_wall075": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_fix_a4_sharp": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_ctrl_a0_f1": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  }
+ }
+}
