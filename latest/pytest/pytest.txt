@@ -1,1 +1,103 @@
-...............
+...............F............................................             [100%]
+=================================== FAILURES ===================================
+_________________________ test_edge_refine_mesh_builds _________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0')
+
+    def test_edge_refine_mesh_builds(tmp_path):
+        """Runs in a subprocess with a time limit (the first version hung the runner tests job for 2 h); gmsh output goes to
+        out/pytest/edge_refine_gmsh.log when that folder exists (the runner tests workflow publishes it)."""
+        import json
+        import subprocess
+        import sys
+        from pathlib import Path
+        try:
+            import gmsh  # noqa: F401
+        except (ImportError, OSError) as e:
+            pytest.skip(f"gmsh not usable in this environment: {e}")
+        if not os.environ.get("CONFLOW_SLOW"):
+            pytest.skip("3D meshing test runs only with CONFLOW_SLOW=1")
+        here = Path(__file__).resolve().parent
+        src = here.parent / "src" if (here.parent / "src").exists() else here.parent / "runner"
+        cmd = [sys.executable, "-u", "-c", _EDGE_SCRIPT, str(src), str(here), str(tmp_path)]
+        log = Path("out/pytest/edge_refine_gmsh.log")
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            text, timed_out = r.stdout + r.stderr, False
+        except subprocess.TimeoutExpired as e:
+            text = (e.stdout or b"").decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            text += (e.stderr or b"").decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            timed_out = True
+        if log.parent.is_dir():
+            log.write_text(text)
+>       assert not timed_out, "edge-refined mesh did not finish within 900 s; tail:\n" + text[-3000:]
+E       AssertionError: edge-refined mesh did not finish within 900 s; tail:
+E         nfo    : [ 60%] Meshing curve 89 (BSpline)
+E         Info    : [ 70%] Meshing curve 90 (Line)
+E         Info    : [ 70%] Meshing curve 91 (BSpline)
+E         Info    : [ 70%] Meshing curve 92 (BSpline)
+E         Info    : [ 70%] Meshing curve 93 (Line)
+E         Info    : [ 70%] Meshing curve 94 (BSpline)
+E         Info    : [ 70%] Meshing curve 95 (BSpline)
+E         Info    : [ 70%] Meshing curve 96 (Line)
+E         Info    : [ 70%] Meshing curve 97 (BSpline)
+E         Info    : [ 70%] Meshing curve 98 (BSpline)
+E         Info    : [ 70%] Meshing curve 99 (Line)
+E         Info    : [ 70%] Meshing curve 100 (BSpline)
+E         Info    : [ 70%] Meshing curve 101 (BSpline)
+E         Info    : [ 70%] Meshing curve 102 (Line)
+E         Info    : [ 80%] Meshing curve 103 (BSpline)
+E         Info    : [ 80%] Meshing curve 104 (BSpline)
+E         Info    : [ 80%] Meshing curve 105 (Line)
+E         Info    : [ 80%] Meshing curve 106 (BSpline)
+E         Info    : [ 80%] Meshing curve 107 (BSpline)
+E         Info    : [ 80%] Meshing curve 108 (Line)
+E         Info    : [ 80%] Meshing curve 109 (BSpline)
+E         Info    : [ 80%] Meshing curve 110 (BSpline)
+E         Info    : [ 80%] Meshing curve 111 (Line)
+E         Info    : [ 80%] Meshing curve 112 (BSpline)
+E         Info    : [ 80%] Meshing curve 113 (BSpline)
+E         Info    : [ 80%] Meshing curve 114 (Line)
+E         Info    : [ 80%] Meshing curve 115 (BSpline)
+E         Info    : [ 90%] Meshing curve 116 (BSpline)
+E         Info    : [ 90%] Meshing curve 117 (BSpline)
+E         Info    : [ 90%] Meshing curve 118 (BSpline)
+E         Info    : [ 90%] Meshing curve 119 (BSpline)
+E         Info    : [ 90%] Meshing curve 120 (BSpline)
+E         Info    : [ 90%] Meshing curve 121 (BSpline)
+E         Info    : [ 90%] Meshing curve 122 (BSpline)
+E         Info    : [ 90%] Meshing curve 123 (BSpline)
+E         Info    : [ 90%] Meshing curve 124 (BSpline)
+E         Info    : [ 90%] Meshing curve 125 (BSpline)
+E         Info    : [ 90%] Meshing curve 126 (BSpline)
+E         Info    : [ 90%] Meshing curve 127 (BSpline)
+E         Info    : [ 90%] Meshing curve 128 (BSpline)
+E         Info    : [100%] Meshing curve 129 (BSpline)
+E         Info    : [100%] Meshing curve 130 (Line)
+E         Info    : [100%] Meshing curve 131 (Line)
+E         Info    : [100%] Meshing curve 132 (Line)
+E         Info    : [100%] Meshing curve 133 (Line)
+E         Info    : [100%] Meshing curve 134 (Line)
+E         Info    : [100%] Meshing curve 135 (Line)
+E         Info    : [100%] Meshing curve 136 (Line)
+E         Info    : [100%] Meshing curve 137 (Line)
+E         Info    : [100%] Meshing curve 138 (Line)
+E         Info    : [100%] Meshing curve 139 (Line)
+E         Info    : [100%] Meshing curve 140 (Line)
+E         Info    : [100%] Meshing curve 141 (Line)
+E         Info    : Done meshing 1D (Wall 1.00644s, CPU 1.00634s)
+E         Info    : Meshing 2D...
+E         Info    : [  0%] Meshing surface 1 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 10%] Meshing surface 3 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 20%] Meshing surface 4 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 30%] Meshing surface 5 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 40%] Meshing surface 6 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 40%] Meshing surface 7 (Plane, Frontal-Delaunay)
+E         Info    : [ 50%] Meshing surface 8 (BSpline surface, Frontal-Delaunay)
+E         Info    : [ 60%] Meshing surface 9 (Plane, Frontal-Delaunay)
+E         Info    : [ 70%] Meshing surface 10 (Plane, Frontal-Delaunay)
+E         
+E       assert not True
+
+tests/test_rt1_mesh_options.py:160: AssertionError
+1 failed, 59 passed in 1201.90s (0:20:01)
