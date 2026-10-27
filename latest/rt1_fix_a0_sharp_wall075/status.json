@@ -1,13 +1,13 @@
 {
  "case": "rt1_fix_a0_sharp_wall075",
- "status": "failed",
- "stop_reason": "SU2 returned 53 in segment 0",
+ "status": "converged",
+ "stop_reason": null,
  "convergence": {
-  "status": "no_data",
-  "criterion": null,
-  "n_iter": 0,
-  "residual_drop_orders": null,
-  "cl_change_window": null,
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 500,
+  "residual_drop_orders": 7.735602704,
+  "cl_change_window": 1.159541000000583e-06,
   "rule": {
    "residual_drop_orders": 5,
    "cl_change": 0.0001,
@@ -15,22 +15,24 @@
    "field": "rms[Rho]"
   }
  },
- "n_iter": 0,
- "iters_total": 0,
- "wall_s_total": 0.5500638484954834,
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 1293.8629179000854,
  "segments": [
   {
    "k": 0,
    "iters_requested": 500,
-   "iters_logged": 0,
-   "wall_s": 0.5500638484954834,
-   "returncode": 53,
+   "iters_logged": 500,
+   "wall_s": 1293.8629179000854,
+   "returncode": 0,
    "restart": false
   }
  ],
  "timing": {
-  "seconds_per_iter": null,
-  "startup_s_median": null
+  "seconds_per_iter": 2.481231832,
+  "seconds_per_iter_mean": 2.500718167850505,
+  "startup_s_median": 40.08760320808551,
+  "n_segments": 1
  },
  "prepared": {
   "kind": "design",
@@ -40,8 +42,8 @@
    "wall_size_factor": 0.75
   },
   "mesh3d": {
-   "n_cells": 2725214,
-   "n_wall_nodes": 160126,
+   "n_cells": 2726869,
+   "n_wall_nodes": 160181,
    "loft_rows": [
     0,
     1,
@@ -79,14 +81,14 @@
     128
    ],
    "kink_row": 1,
-   "loft_volume": 0.45958850459649125,
-   "closed_surface_volume": 0.4609430803067817,
-   "wall_to_data_max": 0.009172966016037626,
-   "wall_to_data_rms": 0.00014602477653035794,
+   "loft_volume": 0.45958850459649037,
+   "closed_surface_volume": 0.4609430803067822,
+   "wall_to_data_max": 0.009163040903996928,
+   "wall_to_data_rms": 0.0001477899101373112,
    "y_symmetry": -0.5,
    "size_factor": 1.0,
    "radius": 50.0,
-   "mesh_seconds": 169.51344060897827,
+   "mesh_seconds": 170.27353882789612,
    "gmsh_version": "4.15.2",
    "options": {
     "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
@@ -115,20 +117,20 @@
    "aoa": 0.0,
    "ref_area": 4.5
   },
-  "mesh_sha256": "c18b1f39f6f779588929fe65380a5620f026be03ca69fb7c63e8bcfe25f0bd47",
-  "mesh_bytes": 144994462,
-  "mesh_cells": 2725214,
-  "prepare_s": 170.04445338249207
+  "mesh_sha256": "b3fc994169f97abb9b2895cb6899ffc744ec6c7bf9d193c388296d5f1706423f",
+  "mesh_bytes": 145081125,
+  "mesh_cells": 2726869,
+  "prepare_s": 170.81502676010132
  },
  "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
  "machine": {
   "nproc": 4,
-  "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
-  "mem_total": "16366508 kB",
-  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
   "python": "3.11.18",
   "runner_os": "Linux",
-  "runner_name": "GitHub Actions 1000000573"
+  "runner_name": "GitHub Actions 1000000590"
  },
  "case_definition": {
   "name": "rt1_fix_a0_sharp_wall075",
@@ -205,14 +207,14 @@
   },
   "note": "RT1 A1 fix test: canary wing (AR_sim 9, symmetric section, M 0.5) with mesh options {\"sharp_te\": true, \"wall_size_factor\": 0.75}; exact inviscid CD at alpha 0 is 0"
  },
- "runner_commit": "3fb692559e8c883534971920c267a75d3c4a9b90",
- "run_id": "40525912195",
+ "runner_commit": "646444b32b65c1c3f612dc31e190866f904ee181",
+ "run_id": "40531797137",
  "jobs": [
   {
-   "job_start": 1793112966.0,
+   "job_start": 1793115092.0,
    "run_attempt": "1",
    "job": "run"
   }
  ],
- "created_utc": "2026-10-27T14:59:17Z"
+ "created_utc": "2026-10-27T15:56:17Z"
 }
