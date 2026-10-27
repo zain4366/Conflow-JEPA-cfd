@@ -1,0 +1,70 @@
+...............F............................................             [100%]
+=================================== FAILURES ===================================
+_________________________ test_edge_refine_mesh_builds _________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0')
+
+    def test_edge_refine_mesh_builds(tmp_path):
+        """Runs in a subprocess with a time limit (the first version hung the runner tests job for 2 h); gmsh output goes to
+        out/pytest/edge_refine_gmsh.log when that folder exists (the runner tests workflow publishes it)."""
+        import json
+        import subprocess
+        import sys
+        from pathlib import Path
+        try:
+            import gmsh  # noqa: F401
+        except (ImportError, OSError) as e:
+            pytest.skip(f"gmsh not usable in this environment: {e}")
+        if not os.environ.get("CONFLOW_SLOW"):
+            pytest.skip("3D meshing test runs only with CONFLOW_SLOW=1")
+        here = Path(__file__).resolve().parent
+        src = here.parent / "src" if (here.parent / "src").exists() else here.parent / "runner"
+        cmd = [sys.executable, "-u", "-c", _EDGE_SCRIPT, str(src), str(here), str(tmp_path)]
+        log = Path("out/pytest/edge_refine_gmsh.log")
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            text, timed_out = r.stdout + r.stderr, False
+        except subprocess.TimeoutExpired as e:
+            text = (e.stdout or b"").decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            text += (e.stderr or b"").decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            timed_out = True
+        if log.parent.is_dir():
+            log.write_text(text)
+>       assert not timed_out, "edge-refined mesh did not finish within 900 s; tail:\n" + text[-3000:]
+E       AssertionError: edge-refined mesh did not finish within 900 s; tail:
+E         3637 (nodes removed 0 1292006)
+E         Info    : It. 3368500 - 2076342 nodes created - worst tet radius 15.3629 (nodes removed 0 1292158)
+E         Info    : It. 3369000 - 2076665 nodes created - worst tet radius 41.9467 (nodes removed 0 1292335)
+E         Info    : It. 3369500 - 2077008 nodes created - worst tet radius 15.3613 (nodes removed 0 1292492)
+E         Info    : It. 3370000 - 2077263 nodes created - worst tet radius 23.7608 (nodes removed 0 1292737)
+E         Info    : It. 3370500 - 2077623 nodes created - worst tet radius 299.099 (nodes removed 0 1292877)
+E         Info    : It. 3371000 - 2077963 nodes created - worst tet radius 8608.19 (nodes removed 0 1293037)
+E         Info    : It. 3371500 - 2078266 nodes created - worst tet radius 106.101 (nodes removed 0 1293234)
+E         Info    : It. 3372000 - 2078555 nodes created - worst tet radius 44.3142 (nodes removed 0 1293445)
+E         Info    : It. 3372500 - 2078826 nodes created - worst tet radius 15.3566 (nodes removed 0 1293674)
+E         Info    : It. 3373000 - 2079128 nodes created - worst tet radius 15.3558 (nodes removed 0 1293872)
+E         Info    : It. 3373500 - 2079445 nodes created - worst tet radius 15.355 (nodes removed 0 1294055)
+E         Info    : It. 3374000 - 2079809 nodes created - worst tet radius 15.3541 (nodes removed 0 1294191)
+E         Info    : It. 3374500 - 2080175 nodes created - worst tet radius 15.3532 (nodes removed 0 1294325)
+E         Info    : It. 3375000 - 2080452 nodes created - worst tet radius 15.3525 (nodes removed 0 1294548)
+E         Info    : It. 3375500 - 2080830 nodes created - worst tet radius 15.3517 (nodes removed 0 1294670)
+E         Info    : It. 3376000 - 2081136 nodes created - worst tet radius 15.3509 (nodes removed 0 1294864)
+E         Info    : It. 3376500 - 2081431 nodes created - worst tet radius 96.4697 (nodes removed 0 1295069)
+E         Info    : It. 3377000 - 2081791 nodes created - worst tet radius 184.911 (nodes removed 0 1295209)
+E         Info    : It. 3377500 - 2082102 nodes created - worst tet radius 15.3485 (nodes removed 0 1295398)
+E         Info    : It. 3378000 - 2082477 nodes created - worst tet radius 15.3476 (nodes removed 0 1295523)
+E         Info    : It. 3378500 - 2082829 nodes created - worst tet radius 15.3467 (nodes removed 0 1295671)
+E         Info    : It. 3379000 - 2083173 nodes created - worst tet radius 15.3458 (nodes removed 0 1295827)
+E         Info    : It. 3379500 - 2083423 nodes created - worst tet radius 15.3451 (nodes removed 0 1296077)
+E         Info    : It. 3380000 - 2083771 nodes created - worst tet radius 57.0423 (nodes removed 0 1296229)
+E         Info    : It. 3380500 - 2084086 nodes created - worst tet radius 15.3435 (nodes removed 0 1296414)
+E         Info    : It. 3381000 - 2084425 nodes created - worst tet radius 15.3428 (nodes removed 0 1296575)
+E         Info    : It. 3381500 - 2084691 nodes created - worst tet radius 15.3422 (nodes removed 0 1296809)
+E         Info    : It. 3382000 - 2085055 nodes created - worst tet radius 15.3413 (nodes removed 0 1296945)
+E         Info    : It. 3382500 - 2085347 nodes created - worst tet radius 25.0423 (nodes removed 0 1297153)
+E         Info    : It. 3383000 - 2085660 nodes created - worst tet radius 341.991 (nodes removed 0 1297340)
+E         
+E       assert not True
+
+tests/test_rt1_mesh_options.py:160: AssertionError
+1 failed, 59 passed in 1170.67s (0:19:30)
