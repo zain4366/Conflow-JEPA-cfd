@@ -872,16 +872,21 @@ def distance_to_surface(points, v, f, k=12):
 
 
 def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_threads=None, log=None,
-                 wall_size_factor=None) -> dict:
+                 wall_size_factor=None, edge_refine=None) -> dict:
     """Tetrahedral Euler mesh around a SuperWing-format surface (3, 129, 257), SW frame in, SU2 frame
     out. Wing = two OpenCASCADE lofts (root-kink, kink-tip) through B-spline sections that interpolate
     the data nodes; the root section lies on the symmetry plane; the far field is a half box of
     half-width `radius`. Markers: wing, symmetry, farfield. Sizes (root-chord units, spec
     cfd.mesh3d_euler) are multiplied by `size_factor` (grid levels for the grid study).
     RT1 option: `wall_size_factor` additionally multiplies the two wall sizes (size_min and the near-wall
-    size_wing_max) but not the far-field size; None (default) leaves every gmsh call as in Task 4."""
+    size_wing_max) but not the far-field size; None (default) leaves every gmsh call as in Task 4.
+    RT1 option: `edge_refine` = dict(h0, growth) adds a size field around the leading- and trailing-edge curves of the
+    wall, h = h0 + growth * d (both scaled with the wall sizes), up to the near-wall size; the edge curves are found by
+    their distance to the data LE / TE lines and the call fails if the LE or a TE curve is not found."""
     if wall_size_factor is not None and not (float(wall_size_factor) > 0):
         raise ValueError(f"wall_size_factor must be > 0, got {wall_size_factor}")
+    if edge_refine is not None:
+        edge_refine = _check_edge_refine(edge_refine)
     import gmsh
     from . import geometry as _geom
     ms = _CFD["mesh3d_euler"]
@@ -957,7 +962,29 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
         gmsh.model.mesh.field.setNumber(ft, "SizeMax", ms["size_far"] * f)
         gmsh.model.mesh.field.setNumber(ft, "DistMin", 0.02)
         gmsh.model.mesh.field.setNumber(ft, "DistMax", 0.4 * radius)
-        gmsh.model.mesh.field.setAsBackgroundMesh(ft)
+        edge_rec = None
+        if edge_refine is None:
+            gmsh.model.mesh.field.setAsBackgroundMesh(ft)
+        else:
+            le_c, te_c = _edge_curves(wall, P, le)
+            h0 = edge_refine["h0"] * fw
+            hw = ms["size_wing_max"] * fw
+            if not h0 < hw:
+                raise ValueError(f"edge_refine h0 {h0} must be below the near-wall size {hw}")
+            fe = gmsh.model.mesh.field.add("Distance")
+            gmsh.model.mesh.field.setNumbers(fe, "CurvesList", le_c + te_c)
+            gmsh.model.mesh.field.setNumber(fe, "Sampling", 400)
+            te_f = gmsh.model.mesh.field.add("Threshold")
+            gmsh.model.mesh.field.setNumber(te_f, "InField", fe)
+            gmsh.model.mesh.field.setNumber(te_f, "SizeMin", h0)
+            gmsh.model.mesh.field.setNumber(te_f, "SizeMax", hw)
+            gmsh.model.mesh.field.setNumber(te_f, "DistMin", 0.0)
+            gmsh.model.mesh.field.setNumber(te_f, "DistMax", (hw - h0) / edge_refine["growth"])
+            fmin = gmsh.model.mesh.field.add("Min")
+            gmsh.model.mesh.field.setNumbers(fmin, "FieldsList", [ft, te_f])
+            gmsh.model.mesh.field.setAsBackgroundMesh(fmin)
+            edge_rec = dict(h0=float(edge_refine["h0"]), growth=float(edge_refine["growth"]), h0_scaled=h0,
+                            dist_max=(hw - h0) / edge_refine["growth"], n_le_curves=len(le_c), n_te_curves=len(te_c))
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", ms["curvature_points"])
         gmsh.option.setNumber("Mesh.MeshSizeMin", ms["size_min"] * fw)
         gmsh.option.setNumber("Mesh.MeshSizeMax", ms["size_far"] * f)
@@ -994,10 +1021,53 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
                gmsh_version=gmsh_version, options={k: ms[k] for k in ms})
     if wall_size_factor is not None:
         out["wall_size_factor"] = float(wall_size_factor)
+    if edge_rec is not None:
+        out["edge_refine"] = edge_rec
     return out
 
 
-EULER_MESH_OPTIONS = ("sharp_te", "wall_size_factor", "farfield_radius")   # RT1 options of a design case's mesh
+def _check_edge_refine(er) -> dict:
+    if not isinstance(er, dict) or set(er) != {"h0", "growth"}:
+        raise ValueError(f"edge_refine must be a dict with exactly h0 and growth, got {er!r}")
+    out = {k: float(er[k]) for k in ("h0", "growth")}
+    if not all(math.isfinite(v) and v > 0 for v in out.values()):
+        raise ValueError(f"edge_refine h0 and growth must be positive, got {er!r}")
+    return out
+
+
+def _edge_curves(wall, P, le, tol=2e-3, n_sample=7):
+    """Wall boundary curves lying on the leading edge (data column le) or on a trailing-edge line (data columns 0 and
+    -1; one line for a sharp TE), SU2 frame. A curve belongs to a line if all n_sample points along it are within
+    `tol` of that line and it extends at least 0.05 along the span (excludes section curves)."""
+    import gmsh
+    from scipy.spatial import cKDTree
+
+    def dense(line):
+        t = np.linspace(0, 1, 50, endpoint=False)
+        d = (line[:-1, None, :] * (1 - t[None, :, None]) + line[1:, None, :] * t[None, :, None]).reshape(-1, 3)
+        return cKDTree(np.vstack([d, line[-1:]]))
+
+    lines = {"le": [dense(P[:, le])], "te": [dense(P[:, 0])]}
+    if np.linalg.norm(P[:, 0] - P[:, -1], axis=1).max() > 1e-9:
+        lines["te"].append(dense(P[:, -1]))
+    curves = sorted({abs(t) for s in wall for _, t in gmsh.model.getBoundary([(2, s)], oriented=False)})
+    found = {"le": [], "te": []}
+    for c in curves:
+        lo, hi = gmsh.model.getParametrizationBounds(1, c)
+        u = np.linspace(lo[0], hi[0], n_sample)
+        x = np.asarray(gmsh.model.getValue(1, c, u)).reshape(-1, 3)
+        if np.ptp(x[:, 1]) < 0.05:
+            continue
+        for k, trees in lines.items():
+            if any(tr.query(x)[0].max() < tol for tr in trees):
+                found[k].append(int(c))
+                break
+    if not found["le"] or not found["te"]:
+        raise RuntimeError(f"edge_refine: edge curves not found (LE {found['le']}, TE {found['te']})")
+    return found["le"], found["te"]
+
+
+EULER_MESH_OPTIONS = ("sharp_te", "wall_size_factor", "farfield_radius", "edge_refine")   # RT1 design-case mesh options
 
 
 def euler_mesh_options(mesh: dict) -> dict:
@@ -1012,6 +1082,8 @@ def euler_mesh_options(mesh: dict) -> dict:
             raise ValueError("sharp_te must be true or false")
         if mesh["sharp_te"]:
             out["sharp_te"] = True
+    if "edge_refine" in mesh:
+        out["edge_refine"] = _check_edge_refine(mesh["edge_refine"])
     for k in ("wall_size_factor", "farfield_radius"):
         if k in mesh:
             v = float(mesh[k])
@@ -1233,6 +1305,8 @@ def prepare_case(case: dict, work, log=print) -> dict:
                 kw["wall_size_factor"] = opt["wall_size_factor"]
             if "farfield_radius" in opt:
                 kw["radius"] = opt["farfield_radius"]
+            if "edge_refine" in opt:
+                kw["edge_refine"] = opt["edge_refine"]
             msurf = surf
             if opt.get("sharp_te"):
                 msurf = _geom.build_surface(p, te_thickness=0.0)

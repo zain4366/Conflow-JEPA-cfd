@@ -91,3 +91,41 @@ def test_sharp_and_wall_refined_mesh_builds(tmp_path):
     assert a["wall_to_data_max"] < 1e-2 and b["wall_to_data_max"] < 1e-2
     assert b["n_cells"] > a["n_cells"] and b["radius"] == 60.0 and b["wall_size_factor"] == 0.75
     assert "wall_size_factor" not in a
+
+
+# ---- RT1 edge refinement (written before the edge-refinement runs) -------------------------------------------------
+
+def test_edge_refine_passed(tmp_path, spy):
+    c = case(1.0)
+    c["mesh"]["edge_refine"] = dict(h0=0.003, growth=0.1)
+    prep = cfd.prepare_case(c, tmp_path)
+    surf, kw = spy.calls[0]
+    np.testing.assert_array_equal(surf, geometry.build_surface(design_params()))
+    assert kw["edge_refine"] == dict(h0=0.003, growth=0.1)
+    assert prep["mesh_options"] == dict(edge_refine=dict(h0=0.003, growth=0.1))
+
+
+@pytest.mark.parametrize("bad", [dict(h0=0.003), dict(h0=0.0, growth=0.1), dict(h0=0.003, growth=-1.0),
+                                 dict(h0=0.003, growth=0.1, extra=1), "0.003"])
+def test_bad_edge_refine_rejected(tmp_path, spy, bad):
+    c = case(1.0)
+    c["mesh"]["edge_refine"] = bad
+    with pytest.raises(ValueError):
+        cfd.prepare_case(c, tmp_path)
+    assert not spy.calls
+
+
+def test_edge_refine_mesh_builds(tmp_path):
+    try:
+        import gmsh  # noqa: F401
+    except (ImportError, OSError) as e:
+        pytest.skip(f"gmsh not usable in this environment: {e}")
+    if not os.environ.get("CONFLOW_SLOW"):
+        pytest.skip("3D meshing test runs only with CONFLOW_SLOW=1")
+    s = geometry.build_surface(design_params())
+    a = cfd.wing_mesh_3d(s, tmp_path / "a.su2", size_factor=3.0)
+    b = cfd.wing_mesh_3d(s, tmp_path / "b.su2", size_factor=3.0, edge_refine=dict(h0=0.01, growth=0.2))
+    er = b["edge_refine"]
+    assert er["n_le_curves"] >= 1 and er["n_te_curves"] >= 2          # blunt TE: upper and lower TE edges
+    assert b["n_cells"] > a["n_cells"] and b["wall_to_data_max"] < 1e-2
+    assert "edge_refine" not in a

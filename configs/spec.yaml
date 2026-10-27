@@ -421,4 +421,7 @@ rt1:
     sharp_te: sections rebuilt with CST trailing-edge thickness 0 (geometry.build_surface te_thickness=0, same max t/c)
     wall_size_factor: multiplies size_min and the near-wall size_wing_max only (far-field size unchanged)
     farfield_radius: far-field half-box half-width, root chords (default cfd.superwing_holdout 50)
+    edge_refine: "{h0, growth}: size h = h0 + growth * d around the wall LE / TE curves up to the near-wall size (Min field)"
   fix_tests: [rt1_fix_a0_sharp, rt1_fix_a0_wall075, rt1_fix_a0_sharp_wall075, rt1_fix_a0_sharp_r100, rt1_fix_a4_sharp]
+  edge_tests: [rt1_edge_a0_g15, rt1_edge_a0_g10, rt1_edge_a4_g10, rt1_edge_a0_g10_wall075]   # fixed before those runs
+  edge_test_pass: alpha 0 |CD| <= 5 counts at an affordable size (about 5 M cells, 1 h per case)
