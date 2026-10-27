@@ -1,10 +1,9 @@
 {
- "note": "RT1 A1 edge refinement: canary wing, blunt TE, LE/TE size field h = 0.003 + g d (g 0.15, 0.10); alpha 0 (exact CD 0) and alpha 4 (lifting line about 57 counts); g 0.10 also with wall x0.75",
+ "note": "RT1 A1 sharp TE with edge refinement g 0.15: alpha 0 (exact 0) and alpha 4, plus blunt alpha 4 on the same mesh",
  "cases": [
-  "rt1_edge_a0_g15",
-  "rt1_edge_a0_g10",
-  "rt1_edge_a4_g10",
-  "rt1_edge_a0_g10_wall075"
+  "rt1_sedge_a0_g15",
+  "rt1_sedge_a4_g15",
+  "rt1_edge_a4_g15"
  ],
  "reference": false
 }

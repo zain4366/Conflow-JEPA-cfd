@@ -425,3 +425,4 @@ rt1:
   fix_tests: [rt1_fix_a0_sharp, rt1_fix_a0_wall075, rt1_fix_a0_sharp_wall075, rt1_fix_a0_sharp_r100, rt1_fix_a4_sharp]
   edge_tests: [rt1_edge_a0_g15, rt1_edge_a0_g10, rt1_edge_a4_g10, rt1_edge_a0_g10_wall075]   # fixed before those runs
   edge_test_pass: alpha 0 |CD| <= 5 counts at an affordable size (about 5 M cells, 1 h per case)
+  sharp_edge_tests: [rt1_sedge_a0_g15, rt1_sedge_a4_g15, rt1_edge_a4_g15]   # 28 Oct 2026, fixed before those runs; same pass rule
