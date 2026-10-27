@@ -1,10 +1,11 @@
 {
- "note": "RT1 A1 canary batch (rectangular AR 9, M 0.5; alpha 4 deg at three mesh levels, alpha 0 deg at the set level)",
+ "note": "RT1 A1 fix tests: canary wing at alpha 0 deg (exact CD 0) with sharp TE / wall refinement 0.75 / far field 100 chords, and alpha 4 deg with sharp TE (theory about 57 counts)",
  "cases": [
-  "rt1_canary_a4_f1",
-  "rt1_canary_a4_f075",
-  "rt1_canary_a4_f05625",
-  "rt1_canary_a0_f1"
+  "rt1_fix_a0_sharp",
+  "rt1_fix_a0_wall075",
+  "rt1_fix_a0_sharp_wall075",
+  "rt1_fix_a0_sharp_r100",
+  "rt1_fix_a4_sharp"
  ],
  "reference": false
 }
