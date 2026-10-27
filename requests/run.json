@@ -1,5 +1,5 @@
 {
- "note": "RT1 fix tests, rerun of the 3 cases that crashed at MPI start-up (UCX on MANA devices) plus a control (rt1_canary_a0_f1 repeated) after setting shared-memory MPI transports",
+ "note": "RT1 fix tests, second rerun (osc ^ucx) of the 3 cases that crashed at MPI start-up (UCX on MANA devices) plus a control (rt1_canary_a0_f1 repeated) after setting shared-memory MPI transports",
  "cases": [
   "rt1_fix_a0_wall075",
   "rt1_fix_a0_sharp_wall075",

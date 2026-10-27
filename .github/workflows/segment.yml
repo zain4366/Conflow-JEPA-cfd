@@ -50,12 +50,13 @@ jobs:
         shell: bash -el {0}
         env:
           OMPI_MCA_rmaps_base_oversubscribe: "1"
-          # Single-node runs: shared-memory transports only. Some runner VMs (Intel 8573C, some AMD 9V45, Oct 2026)
-          # expose an Azure MANA RDMA device; UCX failed to open it (uct_iface_open mana_0) and SU2 segfaulted in
-          # MPI_Win_create (run 40516612589). Same data exchanged, so solver results do not depend on this.
+          # Single-node runs: no UCX. Some runner VMs (Intel 8573C, some AMD 9V45, Oct 2026) expose an Azure MANA
+          # RDMA device; UCX failed to open it (uct_iface_open mana_0) and SU2 segfaulted in MPI_Win_create (run
+          # 40516612589). osc "sm" cannot create SU2's MPI_Win_create window (MPI_ERR_WIN, run 40525912195), so the
+          # one-sided component is left to OpenMPI with UCX excluded. Same data exchanged; results do not depend on it.
           OMPI_MCA_pml: "ob1"
           OMPI_MCA_btl: "self,sm"
-          OMPI_MCA_osc: "sm"
+          OMPI_MCA_osc: "^ucx"
         run: |
           python runner/run_case.py --case ${{ inputs.case }} --work work/${{ inputs.case }} \
             --out out/${{ inputs.case }} --job-start ${{ steps.t0.outputs.epoch }} \
