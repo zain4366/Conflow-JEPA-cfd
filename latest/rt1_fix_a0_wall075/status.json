@@ -1,7 +1,7 @@
 {
  "case": "rt1_fix_a0_wall075",
  "status": "failed",
- "stop_reason": "SU2 returned 139 in segment 0",
+ "stop_reason": "SU2 returned 53 in segment 0",
  "convergence": {
   "status": "no_data",
   "criterion": null,
@@ -17,14 +17,14 @@
  },
  "n_iter": 0,
  "iters_total": 0,
- "wall_s_total": 2.063034772872925,
+ "wall_s_total": 0.5076084136962891,
  "segments": [
   {
    "k": 0,
    "iters_requested": 500,
    "iters_logged": 0,
-   "wall_s": 2.063034772872925,
-   "returncode": 139,
+   "wall_s": 0.5076084136962891,
+   "returncode": 53,
    "restart": false
   }
  ],
@@ -85,7 +85,7 @@
    "y_symmetry": -0.5,
    "size_factor": 1.0,
    "radius": 50.0,
-   "mesh_seconds": 122.56119799613953,
+   "mesh_seconds": 153.77603006362915,
    "gmsh_version": "4.15.2",
    "options": {
     "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
@@ -116,17 +116,17 @@
   "mesh_sha256": "41b3ba4f14ee477318c6cf36d1e01c02ab0eea245d8cf913635e768848533829",
   "mesh_bytes": 145626663,
   "mesh_cells": 2735420,
-  "prepare_s": 123.06208443641663
+  "prepare_s": 154.32997059822083
  },
  "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
  "machine": {
   "nproc": 4,
-  "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
-  "mem_total": "16366512 kB",
-  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "cpu_model": "Intel(R) Xeon(R) 6973P-C",
+  "mem_total": "16372436 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
   "python": "3.11.18",
   "runner_os": "Linux",
-  "runner_name": "GitHub Actions 1000000552"
+  "runner_name": "GitHub Actions 1000000572"
  },
  "case_definition": {
   "name": "rt1_fix_a0_wall075",
@@ -202,14 +202,14 @@
   },
   "note": "RT1 A1 fix test: canary wing (AR_sim 9, symmetric section, M 0.5) with mesh options {\"wall_size_factor\": 0.75}; exact inviscid CD at alpha 0 is 0"
  },
- "runner_commit": "3c01ef46c9975d81e4c4639122bb8ceb934c5f69",
- "run_id": "40516612589",
+ "runner_commit": "3fb692559e8c883534971920c267a75d3c4a9b90",
+ "run_id": "40525912195",
  "jobs": [
   {
-   "job_start": 1793109447.0,
+   "job_start": 1793112966.0,
    "run_attempt": "1",
    "job": "run"
   }
  ],
- "created_utc": "2026-10-27T13:59:57Z"
+ "created_utc": "2026-10-27T14:59:00Z"
 }
