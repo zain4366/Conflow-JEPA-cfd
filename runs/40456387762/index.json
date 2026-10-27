@@ -1,0 +1,26 @@
+{
+ "run_id": "40456387762",
+ "created_utc": "2026-10-27T07:18:32Z",
+ "cases": {
+  "rt1_canary_a4_f1": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_canary_a4_f075": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 1000
+  },
+  "rt1_canary_a4_f05625": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 1000
+  },
+  "rt1_canary_a0_f1": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  }
+ }
+}
