@@ -1,10 +1,10 @@
 {
- "note": "RT1 fix tests, second rerun (osc ^ucx) of the 3 cases that crashed at MPI start-up (UCX on MANA devices) plus a control (rt1_canary_a0_f1 repeated) after setting shared-memory MPI transports",
+ "note": "RT1 A1 edge refinement: canary wing, blunt TE, LE/TE size field h = 0.003 + g d (g 0.15, 0.10); alpha 0 (exact CD 0) and alpha 4 (lifting line about 57 counts); g 0.10 also with wall x0.75",
  "cases": [
-  "rt1_fix_a0_wall075",
-  "rt1_fix_a0_sharp_wall075",
-  "rt1_fix_a4_sharp",
-  "rt1_ctrl_a0_f1"
+  "rt1_edge_a0_g15",
+  "rt1_edge_a0_g10",
+  "rt1_edge_a4_g10",
+  "rt1_edge_a0_g10_wall075"
  ],
  "reference": false
 }
