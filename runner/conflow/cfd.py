@@ -1230,6 +1230,63 @@ def _require(d, *keys):
     return [d[k] for k in keys]
 
 
+# ----------------------------------------------------------------------------- RT1 / A2: dataset wing vs rebuilt wing
+
+def match_dataset_wing(cfg_params, params, tol=1e-9) -> int:
+    """configs.dat row whose 38 parameters equal `params` (max |difference| <= tol * max(1, |p|)); exactly one row."""
+    P = np.asarray(cfg_params, float)
+    p = np.asarray(params, float)
+    d = np.abs(P - p[None, :]).max(axis=1)
+    rows = np.where(d <= tol * max(1.0, float(np.abs(p).max())))[0]
+    if len(rows) != 1:
+        raise ValueError(f"parameters match {len(rows)} configs rows (closest max diff {d.min():.3e})")
+    return int(rows[0])
+
+
+def dataset_condition(wing_row_col, mach_col, aoa_col, row: int, mach_target: float, aoa_target: float) -> int:
+    """Index (case) number of wing `row` whose Mach is closest to mach_target, then AoA closest to aoa_target, then
+    lowest case number. Rule fixed for RT1 / A2 (spec rt1.a2)."""
+    cases = np.where(np.asarray(wing_row_col) == row)[0]
+    if len(cases) == 0:
+        raise ValueError(f"wing row {row} has no cases in index.npy")
+    m, a = np.asarray(mach_col)[cases], np.asarray(aoa_col)[cases]
+    k = np.lexsort((cases, np.abs(a - aoa_target), np.abs(m - mach_target)))[0]
+    return int(cases[k])
+
+
+def _a2_dataset(case: dict, work: Path, prep: dict) -> dict:
+    """Downloads configs.dat and index.npy (case["hf"]) and resolves the dataset wing and condition of an A2 case."""
+    from . import data as _data
+    repo, rev = _require(case["hf"], "repo", "revision")
+    a2 = case["a2"]
+    hf_dir = work / "hf"
+    for n in ("configs.dat", "index.npy"):
+        if not (hf_dir / n).exists():
+            prep["downloads"][n] = download(hf_url(repo, rev, n), hf_dir / n)
+    cfgw = _data.read_configs(hf_dir / "configs.dat")
+    idx = _data.read_index(hf_dir / "index.npy", cfgw)
+    row = match_dataset_wing(cfgw.params, a2["params"])
+    ci = dataset_condition(idx.wing_row, idx.mach, idx.aoa, row, float(a2["mach_target"]), float(a2["aoa_target"]))
+    irow = {c: float(idx.array[ci, j]) for j, c in enumerate(_data.INDEX_COLUMNS)}
+    return dict(wing_row=row, wing_id=int(cfgw.wing_id[row]), case_index=ci, index_row=irow, hf_repo=repo,
+                hf_revision=rev, params=cfgw.params[row], mach_target=float(a2["mach_target"]),
+                aoa_target=float(a2["aoa_target"]))
+
+
+def _euler_mesh_kwargs(mesh: dict, allow_sharp: bool = True):
+    opt = euler_mesh_options(mesh)
+    if opt.get("sharp_te") and not allow_sharp:
+        raise ValueError("sharp_te does not apply to dataset surfaces (origingeom trailing edges are already closed)")
+    kw = {}
+    if "wall_size_factor" in opt:
+        kw["wall_size_factor"] = opt["wall_size_factor"]
+    if "farfield_radius" in opt:
+        kw["radius"] = opt["farfield_radius"]
+    if "edge_refine" in opt:
+        kw["edge_refine"] = opt["edge_refine"]
+    return opt, kw
+
+
 def prepare_case(case: dict, work, log=print) -> dict:
     """Mesh and inputs of one case in `work`. Kinds:
       su2_testcase  mesh file from github.com/su2code/TestCases at a pinned commit
@@ -1237,6 +1294,9 @@ def prepare_case(case: dict, work, log=print) -> dict:
       superwing     held-out SuperWing wing (spec cfd.superwing_holdout) from Hugging Face, gmsh mesh
       design        Task 4 design: wing built from its 38 parameters (conflow.geometry), gmsh Euler mesh; Mach, AoA and
                     reference area from the case file (case["design"])
+      a2_dataset    RT1 / A2: dataset surface (origingeom.npy) of the configs row whose parameters equal case["a2"]["params"],
+                    at the dataset condition picked by dataset_condition; reference area = that case's s_ref_half
+      a2_rebuilt    RT1 / A2: the same wing rebuilt from its 38 parameters (conflow.geometry), same condition and area
     Returns the 'prepared' record (provenance, mesh statistics, solver inputs)."""
     from . import data as _data
     work = Path(work)
@@ -1330,6 +1390,34 @@ def prepare_case(case: dict, work, log=print) -> dict:
         prep["mesh_file"] = "mesh.su2"
         prep["design"] = {k: v for k, v in d.items() if k != "params"}
         prep["flow"] = dict(mach=float(d["mach"]), aoa=float(d["aoa_deg"]), ref_area=float(d["ref_area"]))
+    elif kind in ("a2_dataset", "a2_rebuilt"):
+        from . import geometry as _geom
+        if case["mesh"]["type"] != "euler_tetra":
+            raise ValueError(f"{kind} supports euler_tetra meshes only")
+        opt, kw = _euler_mesh_kwargs(case["mesh"], allow_sharp=(kind == "a2_rebuilt"))
+        ds = _a2_dataset(case, work, prep)
+        repo, rev, row, ci = ds["hf_repo"], ds["hf_revision"], ds["wing_row"], ds["case_index"]
+        if kind == "a2_dataset":
+            surf = _data.NpySource(hf_url(repo, rev, "origingeom.npy")).read(row, row + 1)[0].astype(np.float64)
+            np.save(work / "surface_origingeom.npy", surf)
+            msurf = surf
+        else:
+            surf = _geom.build_surface(ds["params"])
+            np.save(work / "surface_builder.npy", surf)
+            msurf = _geom.build_surface(ds["params"], te_thickness=0.0) if opt.get("sharp_te") else surf
+            if opt.get("sharp_te"):
+                np.save(work / "surface_meshed.npy", msurf)
+        cp_ref = _data.NpySource(hf_url(repo, rev, "data.npy")).read(ci, ci + 1, channel=0)[0]
+        np.save(work / "cp_adflow_cells.npy", cp_ref)
+        st = wing_mesh_3d(msurf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log, **kw)
+        if opt:
+            prep["mesh_options"] = opt
+        prep["mesh3d"] = st
+        prep["mesh_file"] = "mesh.su2"
+        prep["a2"] = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in ds.items()}
+        (work / "selection.json").write_text(json.dumps(prep["a2"], indent=1))
+        ir = ds["index_row"]
+        prep["flow"] = dict(mach=ir["mach"], aoa=ir["aoa"], ref_area=ir["s_ref_half"])
     else:
         raise ValueError(f"unknown case kind {kind}")
     from .records import sha256_file
