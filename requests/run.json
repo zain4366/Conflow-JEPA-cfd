@@ -1,9 +1,9 @@
 {
- "note": "RT1 A1 sharp TE with edge refinement g 0.15: alpha 0 (exact 0) and alpha 4, plus blunt alpha 4 on the same mesh",
+ "note": "RT1 A1 finer edge refinement, blunt TE: h0 0.002 / 0.0015 at alpha 0 (exact 0), h0 0.0015 at alpha 4",
  "cases": [
-  "rt1_sedge_a0_g15",
-  "rt1_sedge_a4_g15",
-  "rt1_edge_a4_g15"
+  "rt1_edge_a0_h20g15",
+  "rt1_edge_a0_h15g15",
+  "rt1_edge_a4_h15g15"
  ],
  "reference": false
 }

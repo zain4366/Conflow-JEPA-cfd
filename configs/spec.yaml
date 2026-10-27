@@ -426,3 +426,8 @@ rt1:
   edge_tests: [rt1_edge_a0_g15, rt1_edge_a0_g10, rt1_edge_a4_g10, rt1_edge_a0_g10_wall075]   # fixed before those runs
   edge_test_pass: alpha 0 |CD| <= 5 counts at an affordable size (about 5 M cells, 1 h per case)
   sharp_edge_tests: [rt1_sedge_a0_g15, rt1_sedge_a4_g15, rt1_edge_a4_g15]   # 28 Oct 2026, fixed before those runs; same pass rule
+  drag_convention_candidate: blunt TE as published; CD = wing pressure drag without the TE-base faces (base force reported
+                             separately). Sharp TE + edge refinement did not remove the thrust (alpha 0 -24.5 counts).
+  fine_edge_tests: [rt1_edge_a0_h20g15, rt1_edge_a0_h15g15, rt1_edge_a4_h15g15]   # fixed before those runs
+  fine_edge_pass: {alpha0_cd_without_base_abs_counts: 3.0, alpha4_cd_without_base_minus_cdi_load_abs_counts: 5.0,
+                   max_cells: 4.0e6}
