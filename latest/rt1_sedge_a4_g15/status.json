@@ -1,0 +1,234 @@
+{
+ "case": "rt1_sedge_a4_g15",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 500,
+  "residual_drop_orders": 6.797223612999999,
+  "cl_change_window": 1.9481699999990276e-05,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 971.9402551651001,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 500,
+   "iters_logged": 500,
+   "wall_s": 971.9402551651001,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 1.869756457,
+  "seconds_per_iter_mean": 1.8852093639252527,
+  "startup_s_median": 26.559599460100117,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "design",
+  "downloads": {},
+  "mesh_options": {
+   "sharp_te": true,
+   "edge_refine": {
+    "h0": 0.003,
+    "growth": 0.15
+   }
+  },
+  "mesh3d": {
+   "n_cells": 2222760,
+   "n_wall_nodes": 120139,
+   "loft_rows": [
+    0,
+    1,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    108,
+    112,
+    116,
+    120,
+    124,
+    128
+   ],
+   "kink_row": 1,
+   "loft_volume": 0.45958850459649037,
+   "closed_surface_volume": 0.4609430803067822,
+   "wall_to_data_max": 0.010305288005921119,
+   "wall_to_data_rms": 0.00011598948793993885,
+   "y_symmetry": -0.5,
+   "size_factor": 1.0,
+   "radius": 50.0,
+   "mesh_seconds": 113.96765089035034,
+   "gmsh_version": "4.15.2",
+   "options": {
+    "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
+    "loft_span_stride": 4,
+    "size_min": 0.0015,
+    "size_wing_max": 0.012,
+    "size_far": 5.0,
+    "curvature_points": 40
+   },
+   "edge_refine": {
+    "h0": 0.003,
+    "growth": 0.15,
+    "h0_scaled": 0.003,
+    "dist_max": 0.06000000000000001,
+    "n_le_curves": 1,
+    "n_te_curves": 1,
+    "stop_at_dist_max": true
+   },
+   "sharp_te": "sections rebuilt with CST trailing-edge thickness 0 (same max t/c); meshed surface in surface_meshed.npy"
+  },
+  "mesh_file": "mesh.su2",
+  "design": {
+   "mach": 0.5,
+   "aoa_deg": 4.0,
+   "ref_area": 4.5,
+   "point": -1,
+   "cohort": "rt1_canary",
+   "seed": 0,
+   "AR_sim": 9.0,
+   "b_exposed": 4.5
+  },
+  "flow": {
+   "mach": 0.5,
+   "aoa": 4.0,
+   "ref_area": 4.5
+  },
+  "mesh_sha256": "4a1482a9611eab64f0b8daadf805432587f10b9fefce672fa72177e1a2a5c2e5",
+  "mesh_bytes": 116880294,
+  "mesh_cells": 2222760,
+  "prepare_s": 114.47061681747437
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.18",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000668"
+ },
+ "case_definition": {
+  "name": "rt1_sedge_a4_g15",
+  "kind": "design",
+  "solver": "euler",
+  "mesh": {
+   "type": "euler_tetra",
+   "size_factor": 1.0,
+   "sharp_te": true,
+   "edge_refine": {
+    "h0": 0.003,
+    "growth": 0.15
+   }
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "design": {
+   "mach": 0.5,
+   "aoa_deg": 4.0,
+   "ref_area": 4.5,
+   "point": -1,
+   "cohort": "rt1_canary",
+   "seed": 0,
+   "params": [
+    0.0,
+    0.0,
+    0.0,
+    10.0,
+    1.0,
+    0.3739936039,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.3253003856,
+    0.6386682982,
+    0.4503359601,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.1483614102,
+    0.1221959671,
+    0.2295614152,
+    0.0827037382,
+    0.2656161615,
+    0.2270957122,
+    0.2125569039,
+    0.1620648935,
+    0.3043644307,
+    0.1969521545,
+    -0.1483614102,
+    -0.1221959671,
+    -0.2295614152,
+    -0.0827037382,
+    -0.2656161615,
+    -0.2270957122,
+    -0.2125569039,
+    -0.1620648935,
+    -0.3043644307,
+    -0.1969521545,
+    0.1483750862
+   ],
+   "AR_sim": 9.0,
+   "b_exposed": 4.5
+  },
+  "note": "RT1 A1 fix test: canary wing (AR_sim 9, symmetric section, M 0.5) with mesh options {\"sharp_te\": true, \"edge_refine\": {\"h0\": 0.003, \"growth\": 0.15}}; exact inviscid CD at alpha 0 is 0"
+ },
+ "runner_commit": "956ea40e612324774824eef77fdd9a070e18cf17",
+ "run_id": "40583337396",
+ "jobs": [
+  {
+   "job_start": 1793134963.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-27T21:21:08Z"
+}
