@@ -1,0 +1,26 @@
+{
+ "run_id": "40574286304",
+ "created_utc": "2026-10-27T20:48:53Z",
+ "cases": {
+  "rt1_edge_a0_g15": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_edge_a0_g10": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_edge_a4_g10": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 1000
+  },
+  "rt1_edge_a0_g10_wall075": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  }
+ }
+}
