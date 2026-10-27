@@ -1,7 +1,7 @@
 {
  "case": "rt1_fix_a4_sharp",
  "status": "failed",
- "stop_reason": "SU2 returned 139 in segment 0",
+ "stop_reason": "SU2 returned 53 in segment 0",
  "convergence": {
   "status": "no_data",
   "criterion": null,
@@ -17,14 +17,14 @@
  },
  "n_iter": 0,
  "iters_total": 0,
- "wall_s_total": 2.3371083736419678,
+ "wall_s_total": 0.5553419589996338,
  "segments": [
   {
    "k": 0,
    "iters_requested": 500,
    "iters_logged": 0,
-   "wall_s": 2.3371083736419678,
-   "returncode": 139,
+   "wall_s": 0.5553419589996338,
+   "returncode": 53,
    "restart": false
   }
  ],
@@ -39,8 +39,8 @@
    "sharp_te": true
   },
   "mesh3d": {
-   "n_cells": 1474690,
-   "n_wall_nodes": 103424,
+   "n_cells": 1473893,
+   "n_wall_nodes": 103441,
    "loft_rows": [
     0,
     1,
@@ -78,14 +78,14 @@
     128
    ],
    "kink_row": 1,
-   "loft_volume": 0.45958850459649125,
-   "closed_surface_volume": 0.4609430803067817,
-   "wall_to_data_max": 0.009673736737580414,
-   "wall_to_data_rms": 9.574438550347381e-05,
+   "loft_volume": 0.45958850459649037,
+   "closed_surface_volume": 0.4609430803067822,
+   "wall_to_data_max": 0.009673736737573725,
+   "wall_to_data_rms": 9.5678052899749e-05,
    "y_symmetry": -0.5,
    "size_factor": 1.0,
    "radius": 50.0,
-   "mesh_seconds": 69.15199446678162,
+   "mesh_seconds": 90.57184386253357,
    "gmsh_version": "4.15.2",
    "options": {
     "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
@@ -113,20 +113,20 @@
    "aoa": 4.0,
    "ref_area": 4.5
   },
-  "mesh_sha256": "d1af511dc94edaa342521b503fa4b5fbc5ea97cea64a64fb2de0fe0d31546cb6",
-  "mesh_bytes": 78602988,
-  "mesh_cells": 1474690,
-  "prepare_s": 69.52704763412476
+  "mesh_sha256": "292947582c6d109016e9bad349580e299cd20801e8f66e1b973efa0cd986663d",
+  "mesh_bytes": 78571328,
+  "mesh_cells": 1473893,
+  "prepare_s": 91.06439709663391
  },
  "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
  "machine": {
   "nproc": 4,
-  "cpu_model": "AMD EPYC 9V45 96-Core Processor",
-  "mem_total": "16367524 kB",
-  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
   "python": "3.11.18",
   "runner_os": "Linux",
-  "runner_name": "GitHub Actions 1000000549"
+  "runner_name": "GitHub Actions 1000000570"
  },
  "case_definition": {
   "name": "rt1_fix_a4_sharp",
@@ -202,14 +202,14 @@
   },
   "note": "RT1 A1 fix test: canary wing (AR_sim 9, symmetric section, M 0.5) with mesh options {\"sharp_te\": true}; exact inviscid CD at alpha 0 is 0"
  },
- "runner_commit": "3c01ef46c9975d81e4c4639122bb8ceb934c5f69",
- "run_id": "40516612589",
+ "runner_commit": "3fb692559e8c883534971920c267a75d3c4a9b90",
+ "run_id": "40525912195",
  "jobs": [
   {
-   "job_start": 1793109447.0,
+   "job_start": 1793112966.0,
    "run_attempt": "1",
    "job": "run"
   }
  ],
- "created_utc": "2026-10-27T13:59:01Z"
+ "created_utc": "2026-10-27T14:57:57Z"
 }
