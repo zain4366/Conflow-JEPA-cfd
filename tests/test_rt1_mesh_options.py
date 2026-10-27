@@ -115,17 +115,51 @@ def test_bad_edge_refine_rejected(tmp_path, spy, bad):
     assert not spy.calls
 
 
+_EDGE_SCRIPT = r"""
+import json, sys, time
+sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
+from conflow import cfd, geometry
+from test_t4_design_case import design_params
+out = sys.argv[3]
+s = geometry.build_surface(design_params())
+t = time.time(); a = cfd.wing_mesh_3d(s, out + "/a.su2", size_factor=3.0, log=print)
+print("STAGE a done", time.time() - t, flush=True)
+t = time.time(); b = cfd.wing_mesh_3d(s, out + "/b.su2", size_factor=3.0, edge_refine=dict(h0=0.01, growth=0.2), log=print)
+print("STAGE b done", time.time() - t, flush=True)
+print("RESULT " + json.dumps(dict(a_cells=a["n_cells"], b_cells=b["n_cells"], b_wall=b["wall_to_data_max"],
+                                  a_has=("edge_refine" in a), er=b["edge_refine"])), flush=True)
+"""
+
+
 def test_edge_refine_mesh_builds(tmp_path):
+    """Runs in a subprocess with a time limit (the first version hung the runner tests job for 2 h); gmsh output goes to
+    out/pytest/edge_refine_gmsh.log when that folder exists (the runner tests workflow publishes it)."""
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
     try:
         import gmsh  # noqa: F401
     except (ImportError, OSError) as e:
         pytest.skip(f"gmsh not usable in this environment: {e}")
     if not os.environ.get("CONFLOW_SLOW"):
         pytest.skip("3D meshing test runs only with CONFLOW_SLOW=1")
-    s = geometry.build_surface(design_params())
-    a = cfd.wing_mesh_3d(s, tmp_path / "a.su2", size_factor=3.0)
-    b = cfd.wing_mesh_3d(s, tmp_path / "b.su2", size_factor=3.0, edge_refine=dict(h0=0.01, growth=0.2))
-    er = b["edge_refine"]
-    assert er["n_le_curves"] >= 1 and er["n_te_curves"] >= 2          # blunt TE: upper and lower TE edges
-    assert b["n_cells"] > a["n_cells"] and b["wall_to_data_max"] < 1e-2
-    assert "edge_refine" not in a
+    here = Path(__file__).resolve().parent
+    src = here.parent / "src" if (here.parent / "src").exists() else here.parent / "runner"
+    cmd = [sys.executable, "-u", "-c", _EDGE_SCRIPT, str(src), str(here), str(tmp_path)]
+    log = Path("out/pytest/edge_refine_gmsh.log")
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+        text, timed_out = r.stdout + r.stderr, False
+    except subprocess.TimeoutExpired as e:
+        text = (e.stdout or b"").decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+        text += (e.stderr or b"").decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+        timed_out = True
+    if log.parent.is_dir():
+        log.write_text(text)
+    assert not timed_out, "edge-refined mesh did not finish within 900 s; tail:\n" + text[-3000:]
+    res = [ln for ln in text.splitlines() if ln.startswith("RESULT ")]
+    assert res, "no result; tail:\n" + text[-3000:]
+    r = json.loads(res[-1][7:])
+    assert r["er"]["n_le_curves"] >= 1 and r["er"]["n_te_curves"] >= 2       # blunt TE: upper and lower TE edges
+    assert r["b_cells"] > r["a_cells"] and r["b_wall"] < 1e-2 and not r["a_has"]
