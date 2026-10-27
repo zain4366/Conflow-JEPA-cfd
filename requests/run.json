@@ -1,7 +1,10 @@
 {
- "note": "Task 4 RANS spot check step 1: Task 2 held-out wing with the fixed RANS mesh (spec task4.rans_spot_check); the Euler set (run 40189757820) is unchanged",
+ "note": "RT1 A1 canary batch (rectangular AR 9, M 0.5; alpha 4 deg at three mesh levels, alpha 0 deg at the set level)",
  "cases": [
-  "sw_holdout_rans_t4"
+  "rt1_canary_a4_f1",
+  "rt1_canary_a4_f075",
+  "rt1_canary_a4_f05625",
+  "rt1_canary_a0_f1"
  ],
  "reference": false
 }
