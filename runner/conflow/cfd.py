@@ -980,11 +980,21 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
             gmsh.model.mesh.field.setNumber(te_f, "SizeMax", hw)
             gmsh.model.mesh.field.setNumber(te_f, "DistMin", 0.0)
             gmsh.model.mesh.field.setNumber(te_f, "DistMax", (hw - h0) / edge_refine["growth"])
+            # restricted to the wing surfaces (and their curves) and the fluid volume: applied to the symmetry plane
+            # and far-field faces, the field stalled gmsh's 2D Frontal-Delaunay mesher (runner tests run 40566064645)
+            wall_curves = sorted({abs(t) for s_ in wall for _, t in gmsh.model.getBoundary([(2, s_)], oriented=False)})
+            fr = gmsh.model.mesh.field.add("Restrict")
+            gmsh.model.mesh.field.setNumber(fr, "InField", te_f)
+            gmsh.model.mesh.field.setNumbers(fr, "CurvesList", wall_curves)
+            gmsh.model.mesh.field.setNumbers(fr, "SurfacesList", wall)
+            gmsh.model.mesh.field.setNumbers(fr, "VolumesList", vols)
+            gmsh.model.mesh.field.setNumber(fr, "IncludeBoundary", 0)
             fmin = gmsh.model.mesh.field.add("Min")
-            gmsh.model.mesh.field.setNumbers(fmin, "FieldsList", [ft, te_f])
+            gmsh.model.mesh.field.setNumbers(fmin, "FieldsList", [ft, fr])
             gmsh.model.mesh.field.setAsBackgroundMesh(fmin)
             edge_rec = dict(h0=float(edge_refine["h0"]), growth=float(edge_refine["growth"]), h0_scaled=h0,
-                            dist_max=(hw - h0) / edge_refine["growth"], n_le_curves=len(le_c), n_te_curves=len(te_c))
+                            dist_max=(hw - h0) / edge_refine["growth"], n_le_curves=len(le_c), n_te_curves=len(te_c),
+                            restricted_to="wing surfaces and curves, fluid volume")
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", ms["curvature_points"])
         gmsh.option.setNumber("Mesh.MeshSizeMin", ms["size_min"] * fw)
         gmsh.option.setNumber("Mesh.MeshSizeMax", ms["size_far"] * f)
