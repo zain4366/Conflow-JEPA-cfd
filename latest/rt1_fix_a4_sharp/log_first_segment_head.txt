@@ -1,0 +1,44 @@
+[1793109540.980457] [runnervm48cm3:2394 :0]      ucp_worker.c:1492 UCX  ERROR uct_iface_open(ud_verbs/mana_0:1) failed: Address not valid
+[1793109540.980750] [runnervm48cm3:2393 :0]      ucp_worker.c:1492 UCX  ERROR uct_iface_open(ud_verbs/mana_0:1) failed: Address not valid
+[1793109540.981080] [runnervm48cm3:2392 :0]      ucp_worker.c:1492 UCX  ERROR uct_iface_open(ud_verbs/mana_0:1) failed: Address not valid
+[1793109540.981377] [runnervm48cm3:2391 :0]      ucp_worker.c:1492 UCX  ERROR uct_iface_open(ud_verbs/mana_0:1) failed: Address not valid
+[runnervm48cm3:02394] pml_ucx.c:319  Error: Failed to create UCP worker
+[runnervm48cm3:02393] pml_ucx.c:319  Error: Failed to create UCP worker
+[runnervm48cm3:02392] pml_ucx.c:319  Error: Failed to create UCP worker
+[runnervm48cm3:02391] pml_ucx.c:319  Error: Failed to create UCP worker
+Error in MPI_Isend(94745510859852, 1, 0x7fb2d8d249a0, 2, -34, 140406118717216) (-1)
+[runnervm48cm3:02394] *** Process received signal ***
+[runnervm48cm3:02394] Signal: Segmentation fault (11)
+[runnervm48cm3:02394] Signal code: Address not mapped (1)
+[runnervm48cm3:02394] Failing at address: 0x68
+[runnervm48cm3:02394] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x7fb2d5c45330]
+[runnervm48cm3:02394] [ 1] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_osc_rdma_free+0x93)[0x7fb2d8c28443]
+[runnervm48cm3:02394] [ 2] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(+0x232aed)[0x7fb2d8c32aed]
+[runnervm48cm3:02394] [ 3] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_osc_base_select+0x11a)[0x7fb2d8c18e9a]
+[runnervm48cm3:02394] [ 4] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_win_create+0x9c)[0x7fb2d8a945dc]
+[runnervm48cm3:02394] [ 5] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(MPI_Win_create+0xd3)[0x7fb2d8ad8d73]
+[runnervm48cm3:02394] [ 6] SU2_CFD(+0x16bb85)[0x562b71df4b85]
+[runnervm48cm3:02394] [ 7] /lib/x86_64-linux-gnu/libc.so.6(+0x2a1ca)[0x7fb2d5c2a1ca]
+[runnervm48cm3:02394] [ 8] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x8b)[0x7fb2d5c2a28b]
+[runnervm48cm3:02394] [ 9] SU2_CFD(+0x18756e)[0x562b71e1056e]
+[runnervm48cm3:02394] *** End of error message ***
+Error in MPI_Isend(94001913185356, 1, 0x7fa64f1249a0, 0, -34, 140352268048160) (-1)
+[runnervm48cm3:02392] *** Process received signal ***
+[runnervm48cm3:02392] Signal: Segmentation fault (11)
+[runnervm48cm3:02392] Signal code: Address not mapped (1)
+[runnervm48cm3:02392] Failing at address: 0x68
+[runnervm48cm3:02392] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x45330)[0x7fa64c045330]
+[runnervm48cm3:02392] [ 1] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_osc_rdma_free+0x93)[0x7fa64f028443]
+[runnervm48cm3:02392] [ 2] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(+0x232aed)[0x7fa64f032aed]
+[runnervm48cm3:02392] [ 3] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_osc_base_select+0x11a)[0x7fa64f018e9a]
+[runnervm48cm3:02392] [ 4] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(ompi_win_create+0x9c)[0x7fa64ee945dc]
+[runnervm48cm3:02392] [ 5] /home/runner/micromamba/envs/su2/bin/../lib/libmpi.so.40(MPI_Win_create+0xd3)[0x7fa64eed8d73]
+[runnervm48cm3:02392] [ 6] SU2_CFD(+0x16bb85)[0x557e46752b85]
+[runnervm48cm3:02392] [ 7] /lib/x86_64-linux-gnu/libc.so.6(+0x2a1ca)[0x7fa64c02a1ca]
+[runnervm48cm3:02392] [ 8] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x8b)[0x7fa64c02a28b]
+[runnervm48cm3:02392] [ 9] SU2_CFD(+0x18756e)[0x557e4676e56e]
+[runnervm48cm3:02392] *** End of error message ***
+--------------------------------------------------------------------------
+prterun noticed that process rank 1 with PID 2392 on node runnervm48cm3 exited on
+signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
