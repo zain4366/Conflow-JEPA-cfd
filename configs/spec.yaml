@@ -377,7 +377,9 @@ task4:
     ref: {area: task4.reference_area rule, length: 1.0, moment_ref: [0.25, 0.0, 0.0]}
     comparison:
       # CL, CM and Cp compared directly; CD only as differences between cohorts at the same design point
-      cl_cm: surrogate at (params, Mach, AoA) minus SU2 history final value (forces / reference area rule)
+      cl_cm: surrogate at (params, Mach, AoA) minus SU2 history final value (forces / reference area rule); CM = -CMy
+                                       #  of the SU2 history (moment about the span axis in the data convention; fixed
+                                       #  25 Oct before any comparison was computed: the first collector read CMz)
       cp: RMS over the 64 x 128 reduced built-grid cells, SU2 Cp mapped by cfd.map_surface_to_grid (k = 4)
       cd_baseline_cohort: knn          # delta_c = CD_c - CD_knn at the same point and seed, SU2 and surrogate;
                                        #  exploitation_c = delta_c(surrogate) - delta_c(SU2), counts
@@ -410,3 +412,13 @@ task4:
     design_te: builder TE base (0.004c) collapsed to its midpoint (cfd.sharpen_te); the Euler set keeps the blunt TE
     gate: {cl_tol: 0.03, cd_tol_counts: 25.0, compared_with: ADflow cl_solver / cd_solver of the held-out case,
            requires: converged by cfd.convergence}
+
+rt1:
+  # (RT1 revision task, 27 Oct 2026; fixed before the fix-test runs) A1 diagnostics of the Euler drag.
+  canary: {wing: "untwisted rectangular, AR_sim 9, symmetric section (tools/rt1/make_canary_cases.py)", mach: 0.5,
+           alpha_deg: [0.0, 4.0], size_factors: [1.0, 0.75, 0.5625]}
+  euler_mesh_options:                # case["mesh"] keys of design cases (cfd.euler_mesh_options); absent = Task 4 mesh
+    sharp_te: sections rebuilt with CST trailing-edge thickness 0 (geometry.build_surface te_thickness=0, same max t/c)
+    wall_size_factor: multiplies size_min and the near-wall size_wing_max only (far-field size unchanged)
+    farfield_radius: far-field half-box half-width, root chords (default cfd.superwing_holdout 50)
+  fix_tests: [rt1_fix_a0_sharp, rt1_fix_a0_wall075, rt1_fix_a0_sharp_wall075, rt1_fix_a0_sharp_r100, rt1_fix_a4_sharp]

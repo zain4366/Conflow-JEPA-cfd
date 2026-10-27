@@ -148,19 +148,21 @@ def spanwise_laws(g: dict, y: np.ndarray, i_kink_grid: np.ndarray = None) -> dic
     return out
 
 
-def _root_foil(g: dict):
-    x, yu, yl, _ = cst_foil(N_CHORD_SIDE, g["cst_u"], g["cst_l"], t=g["tcroot"], tail=TAIL)
+def _root_foil(g: dict, tail: float = None):
+    x, yu, yl, _ = cst_foil(N_CHORD_SIDE, g["cst_u"], g["cst_l"], t=g["tcroot"], tail=TAIL if tail is None else tail)
     return x, 0.5 * (yu + yl), yu - yl
 
 
-def build_surface(params, n_span: int = N_SPAN) -> np.ndarray:
-    """Reference surface nodes, shape (3, n_span, 257): channels x, y (vertical), z (span)."""
+def build_surface(params, n_span: int = N_SPAN, te_thickness: float = None) -> np.ndarray:
+    """Reference surface nodes, shape (3, n_span, 257): channels x, y (vertical), z (span).
+    te_thickness: CST linear trailing-edge thickness (chord fraction); None = spec builder.te_thickness (0.004).
+    0.0 gives the same sections closed to a sharp trailing edge (same max t/c; RT1 Euler mesh option sharp_te)."""
     g = as_dict(params)
     st = _stations(g)
     y = np.linspace(st["cabin"], st["hs"], n_span)
     i_kink = int(np.floor((g["kink"] - CABIN) / (1 - CABIN) * n_span))
     laws = spanwise_laws(g, y, i_kink_grid=np.arange(n_span) <= i_kink)
-    x1, cmb1, tc1 = _root_foil(g)
+    x1, cmb1, tc1 = _root_foil(g, te_thickness)
     yu = np.outer(cmb1, laws["cmb"]) + 0.5 * np.outer(tc1, laws["trs"])
     yl = np.outer(cmb1, laws["cmb"]) - 0.5 * np.outer(tc1, laws["trs"])
     zz = np.concatenate([yl[1:][::-1], yu], axis=0)          # (257, n_span)

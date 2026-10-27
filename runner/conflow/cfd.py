@@ -871,12 +871,17 @@ def distance_to_surface(points, v, f, k=12):
     return best
 
 
-def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_threads=None, log=None) -> dict:
+def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_threads=None, log=None,
+                 wall_size_factor=None) -> dict:
     """Tetrahedral Euler mesh around a SuperWing-format surface (3, 129, 257), SW frame in, SU2 frame
     out. Wing = two OpenCASCADE lofts (root-kink, kink-tip) through B-spline sections that interpolate
     the data nodes; the root section lies on the symmetry plane; the far field is a half box of
     half-width `radius`. Markers: wing, symmetry, farfield. Sizes (root-chord units, spec
-    cfd.mesh3d_euler) are multiplied by `size_factor` (grid levels for the grid study)."""
+    cfd.mesh3d_euler) are multiplied by `size_factor` (grid levels for the grid study).
+    RT1 option: `wall_size_factor` additionally multiplies the two wall sizes (size_min and the near-wall
+    size_wing_max) but not the far-field size; None (default) leaves every gmsh call as in Task 4."""
+    if wall_size_factor is not None and not (float(wall_size_factor) > 0):
+        raise ValueError(f"wall_size_factor must be > 0, got {wall_size_factor}")
     import gmsh
     from . import geometry as _geom
     ms = _CFD["mesh3d_euler"]
@@ -942,18 +947,19 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
         gmsh.model.addPhysicalGroup(2, far, name="farfield")
         gmsh.model.addPhysicalGroup(3, vols, name="fluid")
         f = float(size_factor)
+        fw = f if wall_size_factor is None else f * float(wall_size_factor)
         fd = gmsh.model.mesh.field.add("Distance")
         gmsh.model.mesh.field.setNumbers(fd, "SurfacesList", wall)
         gmsh.model.mesh.field.setNumber(fd, "Sampling", 200)
         ft = gmsh.model.mesh.field.add("Threshold")
         gmsh.model.mesh.field.setNumber(ft, "InField", fd)
-        gmsh.model.mesh.field.setNumber(ft, "SizeMin", ms["size_wing_max"] * f)
+        gmsh.model.mesh.field.setNumber(ft, "SizeMin", ms["size_wing_max"] * fw)
         gmsh.model.mesh.field.setNumber(ft, "SizeMax", ms["size_far"] * f)
         gmsh.model.mesh.field.setNumber(ft, "DistMin", 0.02)
         gmsh.model.mesh.field.setNumber(ft, "DistMax", 0.4 * radius)
         gmsh.model.mesh.field.setAsBackgroundMesh(ft)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", ms["curvature_points"])
-        gmsh.option.setNumber("Mesh.MeshSizeMin", ms["size_min"] * f)
+        gmsh.option.setNumber("Mesh.MeshSizeMin", ms["size_min"] * fw)
         gmsh.option.setNumber("Mesh.MeshSizeMax", ms["size_far"] * f)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
@@ -980,12 +986,39 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
     v, fc = _geom.close_surface(s_sw)
     dist = distance_to_surface(su2_to_sw(wall_pts), v, fc)
     closed_vol = _geom.check_watertight(v, fc)["signed_volume"]
-    return dict(n_cells=n_cells, n_wall_nodes=int(len(wall_pts)), loft_rows=rows.tolist(), kink_row=int(kink),
-                loft_volume=loft_vol, closed_surface_volume=float(closed_vol),
-                wall_to_data_max=float(dist.max()),
-                wall_to_data_rms=float(np.sqrt(np.mean(dist ** 2))), y_symmetry=y_root,
-                size_factor=float(size_factor), radius=radius, mesh_seconds=time.time() - t0,
-                gmsh_version=gmsh_version, options={k: ms[k] for k in ms})
+    out = dict(n_cells=n_cells, n_wall_nodes=int(len(wall_pts)), loft_rows=rows.tolist(), kink_row=int(kink),
+               loft_volume=loft_vol, closed_surface_volume=float(closed_vol),
+               wall_to_data_max=float(dist.max()),
+               wall_to_data_rms=float(np.sqrt(np.mean(dist ** 2))), y_symmetry=y_root,
+               size_factor=float(size_factor), radius=radius, mesh_seconds=time.time() - t0,
+               gmsh_version=gmsh_version, options={k: ms[k] for k in ms})
+    if wall_size_factor is not None:
+        out["wall_size_factor"] = float(wall_size_factor)
+    return out
+
+
+EULER_MESH_OPTIONS = ("sharp_te", "wall_size_factor", "farfield_radius")   # RT1 options of a design case's mesh
+
+
+def euler_mesh_options(mesh: dict) -> dict:
+    """Validated RT1 options of a design case's euler_tetra mesh (case["mesh"]); unknown keys are errors.
+    Returns only the options that change the mesh (sharp_te False is the default and is dropped)."""
+    unknown = set(mesh) - {"type", "size_factor"} - set(EULER_MESH_OPTIONS)
+    if unknown:
+        raise ValueError(f"unknown euler_tetra mesh options {sorted(unknown)}")
+    out = {}
+    if "sharp_te" in mesh:
+        if not isinstance(mesh["sharp_te"], bool):
+            raise ValueError("sharp_te must be true or false")
+        if mesh["sharp_te"]:
+            out["sharp_te"] = True
+    for k in ("wall_size_factor", "farfield_radius"):
+        if k in mesh:
+            v = float(mesh[k])
+            if not (math.isfinite(v) and v > 0):
+                raise ValueError(f"{k} must be a positive number, got {mesh[k]}")
+            out[k] = v
+    return out
 
 
 # ============================================================================= experimental files
@@ -1194,7 +1227,22 @@ def prepare_case(case: dict, work, log=print) -> dict:
         surf = _geom.build_surface(p)
         np.save(work / "surface_builder.npy", surf)
         if case["mesh"]["type"] == "euler_tetra":
-            st = wing_mesh_3d(surf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log)
+            opt = euler_mesh_options(case["mesh"])
+            kw = {}
+            if "wall_size_factor" in opt:
+                kw["wall_size_factor"] = opt["wall_size_factor"]
+            if "farfield_radius" in opt:
+                kw["radius"] = opt["farfield_radius"]
+            msurf = surf
+            if opt.get("sharp_te"):
+                msurf = _geom.build_surface(p, te_thickness=0.0)
+                np.save(work / "surface_meshed.npy", msurf)
+            st = wing_mesh_3d(msurf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log, **kw)
+            if opt:
+                prep["mesh_options"] = opt
+                if opt.get("sharp_te"):
+                    st["sharp_te"] = ("sections rebuilt with CST trailing-edge thickness 0 (same max t/c); "
+                                      "meshed surface in surface_meshed.npy")
         elif case["mesh"]["type"] == "rans_hybrid":
             st = _rans_mesh(sharpen_te(surf), work / "mesh.su2", case, log)
             st["te_collapsed"] = "builder TE base (0.004c) collapsed to its midpoint for the prism mesher"
