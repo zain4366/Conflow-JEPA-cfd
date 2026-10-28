@@ -1,0 +1,21 @@
+{
+ "run_id": "40606099736",
+ "created_utc": "2026-10-28T00:44:19Z",
+ "cases": {
+  "rt1_sedge_a0_h20g15": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_sedge_a0_h15g15": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt1_edge_a0_h10g15": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  }
+ }
+}
