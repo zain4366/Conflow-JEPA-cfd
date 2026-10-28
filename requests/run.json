@@ -1,14 +1,8 @@
 {
- "note": "RT2 A5 at fixed CL (RT4 condition): W3 five F2 levels, W0 three more levels",
+ "note": "RT2 A5: rerun of rt2_a5_w3_h0300 and rt2_a5_w3_f080_h0300 (their first results were lost to the publish race and the run was cancelled while rt2_a5_w0_h0075 sat on a 4.1-order residual plateau)",
  "cases": [
-  "rt2_fcl_w3_h0300",
-  "rt2_fcl_w3_h0200",
-  "rt2_fcl_w3_h0150",
-  "rt2_fcl_w3_h0100",
-  "rt2_fcl_w3_h0075",
-  "rt2_fcl_w0_h0200",
-  "rt2_fcl_w0_h0100",
-  "rt2_fcl_w0_h0075"
+  "rt2_a5_w3_h0300",
+  "rt2_a5_w3_f080_h0300"
  ],
  "reference": false
 }
