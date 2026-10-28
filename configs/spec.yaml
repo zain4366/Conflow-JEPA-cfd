@@ -440,4 +440,4 @@ rt1:
     evidence: "canary alpha 0: blunt 4 levels linear (max resid 0.44), 2-level CD -2.3; sharp 3 levels CD +1.3 (exact 0);
                alpha 4 blunt 2-level CD 59.3 vs span-loading CDi 60.6 counts: passes rt1.fine_edge_pass on the extrapolated value"
     single_level_fails: "no single mesh passes: best single blunt level (h0 1e-3, 4.9 M cells) -10.7 counts at alpha 0"
-  a2_mesh: same two levels for both surfaces (dataset origingeom: closed TE; rebuilt: builder blunt TE)
+  a2_mesh: "same two levels for both surfaces (dataset origingeom closed TE; rebuilt builder blunt TE)"
