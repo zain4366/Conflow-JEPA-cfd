@@ -486,3 +486,39 @@ rt2:
     cd_window_iters: 200
     cd_change_max: 5.0e-6            # 0.05 counts, max - min of CD over the last 200 iterations
     cl_target_tol: 1.0e-4            # fixed-CL cases only: |CL_final - CL_target|
+  a5:                                # 28 Oct 2026, fixed after the mesh-only probe (results branch latest/rt2_probe_*) and
+                                     #  before any A5 SU2 run. Probe finding: in the RT1 family (spec size_min 0.0015) the
+                                     #  achieved LE node spacing is 0.0015 (the size_min floor) at h0 3e-3 and 1.5e-3, so
+                                     #  only the TE was refined; with size_min = h0 the LE spacing follows h0 (0.75e-3 probe).
+    family: "edge family F2: euler_tetra size factor 1, edge_refine growth 0.15 at h0, size_min = h0 (LE and TE refined
+             together), rounded surface, RT2 area convention; h0 in root chords"
+    growth: 0.15
+    size_min: h0                     # per level; the extra RT1-family level uses the spec value (0.0015)
+    levels_h0: [0.003, 0.002, 0.0015, 0.001, 0.00075]   # size ratios 1.5, 1.33, 1.5, 1.33 (>= 1.3, A5 card)
+    rt1_family_level: {h0: 0.003, size_min: spec}        # RT1 coarse level (the RT1 fine level 1.5e-3 equals F2's)
+    wings:
+      w3: {design: t4e_p3_guided_t40, global_size_factors: [0.8, 1.25]}   # original grid-study wing (P4)
+      w0: {design: t4e_p0_guided_t40}                                     # P1 wing
+    global_check: {h0_pair: [0.003, 0.0015]}             # edge size and size_min kept absolute (nominal h0 = h0 / f)
+    condition: Task 4 design Mach and trimmed AoA of the design (fixed AoA), case reference area by rt2.area_convention
+    convergence: rt2.a7_convergence without the CL target
+    analysis:
+      monotone: all increments CD(h_i) - CD(h_i+1) of one sign over the A7-converged F2 levels
+      gci: Celik et al. 2008 on the three finest F2 levels with h = h0, only if monotone and |e_fine| < |e_next|;
+           otherwise "drag not grid-converged" is reported and no GCI
+      two_level: "CD_2 = 2 CD(h) - CD(2h) for the pairs (3, 1.5) and (1.5, 0.75) e-3 (F2) and the RT1 pair"
+      rule_choice: "verification mesh = the coarsest F2 pair (h, 2h) whose two-level value is within max(1 count, GCI_fine
+                    band) of the Celik extrapolation on both wings, with the global check |dCD_2| <= 1 count at f 0.8 and
+                    1.25; if none qualifies or drag is not grid-converged, the finest affordable pair is used and the
+                    non-convergence is stated (cohort differences at equal resolution, A6 noise floor)"
+    budget: "probe: 0.75e-3 level 5.81 M cells, gmsh peak 4.0 GB of 16 GB; SU2 4.94 M cells ran at 3.3 s/iter (RT1
+             canary), so about 4 s/iter and 1-2 h for 1000-1500 iterations, inside the 330 min job budget"
+  fixed_cl_check:                    # 28 Oct 2026, before the run
+    wing: w0
+    design: t4e_p0_guided_t40        # P1: M 0.78, target CL = design point cl_target (results/task1_data.json)
+    levels_h0: [0.003, 0.0015]       # F2 family (same as the A5 levels)
+    dcl_dalpha: 0.1                  # per degree: lifting-surface estimate 2 pi AR / (2 + sqrt(4 + AR^2 beta^2 (1 +
+                                     #  tan^2 L / beta^2))) with AR 10.98, M 0.78, L(c/2) about 33 deg -> 0.0995 / deg
+    update_aoa_iter_limit: 100
+    start_aoa: Task 4 trimmed AoA (5.08 deg)
+    pass: A7 rule (5 orders, CD Cauchy 0.05 counts over 200 iterations, |CL - target| <= 1e-4) at both levels
