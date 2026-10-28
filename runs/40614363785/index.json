@@ -1,0 +1,70 @@
+{
+ "run_id": "40614363785",
+ "created_utc": "2026-10-28T01:21:38Z",
+ "cases": {
+  "rt1_a2_p1_dataset_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p1_rebuilt_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p1_dataset_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p1_rebuilt_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p2_dataset_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p2_rebuilt_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p2_dataset_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p2_rebuilt_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p5_dataset_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p5_rebuilt_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p5_dataset_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p5_rebuilt_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p6_dataset_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p6_rebuilt_h30": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p6_dataset_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  },
+  "rt1_a2_p6_rebuilt_h15": {
+   "status": "missing",
+   "note": "no out artifact; see the Actions log of this run"
+  }
+ }
+}
