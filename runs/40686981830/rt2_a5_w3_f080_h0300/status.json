@@ -1,0 +1,299 @@
+{
+ "case": "rt2_a5_w3_f080_h0300",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "all",
+  "n_iter": 500,
+  "residual_drop_orders": 5.43714259,
+  "cd_change_window": 2.652949999997628e-06,
+  "cl_final": 0.6588711437,
+  "cl_error": null,
+  "checks": {
+   "residual_drop": true,
+   "cd_cauchy": true
+  },
+  "rule": {
+   "mode": "all",
+   "residual_drop_orders": 5.0,
+   "cd_window_iters": 200,
+   "cd_change_max": 5e-06,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 1008.9650690555573,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 500,
+   "iters_logged": 500,
+   "wall_s": 1008.9650690555573,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 1.925380688,
+  "seconds_per_iter_mean": 1.9574727536525252,
+  "startup_s_median": 27.397943177557295,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "design",
+  "downloads": {},
+  "surface_sha256": {
+   "builder": "dcdd668fae8459a6026bb7286addde250aa844e1e874512dc37a59f7b5d9591e",
+   "meshed": "73a4d17cb22072a2935c25a66ea798129578602441743cdfed762e00d51a4818"
+  },
+  "mesh_options": {
+   "edge_refine": {
+    "h0": 0.00375,
+    "growth": 0.15
+   },
+   "round_decimals": 12,
+   "size_min": 0.00375
+  },
+  "mesh3d": {
+   "n_cells": 2086973,
+   "n_wall_nodes": 89377,
+   "loft_rows": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    38,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    108,
+    112,
+    116,
+    120,
+    124,
+    128
+   ],
+   "kink_row": 38,
+   "loft_volume": 0.12253352674252267,
+   "closed_surface_volume": 0.12246719588432203,
+   "wall_to_data_max": 0.0033183764988665623,
+   "wall_to_data_rms": 7.948106501423841e-05,
+   "y_symmetry": -0.384756989105,
+   "size_factor": 0.8,
+   "radius": 50.0,
+   "mesh_seconds": 224.84442925453186,
+   "gmsh_version": "4.15.2",
+   "options": {
+    "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
+    "loft_span_stride": 4,
+    "size_min": 0.0015,
+    "size_wing_max": 0.012,
+    "size_far": 5.0,
+    "curvature_points": 40
+   },
+   "size_min": 0.00375,
+   "size_min_scaled": 0.003,
+   "edge_refine": {
+    "h0": 0.00375,
+    "growth": 0.15,
+    "h0_scaled": 0.003,
+    "dist_max": 0.044000000000000004,
+    "n_le_curves": 2,
+    "n_te_curves": 4,
+    "stop_at_dist_max": true,
+    "achieved": {
+     "le": {
+      "n_segments": 1408,
+      "median": 0.0029997519023762247,
+      "p10": 0.002996038960367769,
+      "p90": 0.00299975194235675,
+      "min": 0.002996028495316512,
+      "max": 0.0031555110380812345,
+      "mean": 0.0030023422709375526
+     },
+     "te": {
+      "n_segments": 2416,
+      "median": 0.0031621537528895302,
+      "p10": 0.003094478540266118,
+      "p90": 0.003377645361722733,
+      "min": 0.003087894688859141,
+      "max": 0.003747279792884827,
+      "mean": 0.003205395350676521
+     }
+    }
+   }
+  },
+  "mesh_file": "mesh.su2",
+  "design": {
+   "mach": 0.82,
+   "aoa_deg": 7.001333951945526,
+   "ref_area": 2.3471273132526296,
+   "point": 3,
+   "cohort": "guided_t40",
+   "seed": 0,
+   "params_sha": "e1b922c17b97183a",
+   "params_sha256": "e1b922c17b97183aa4c7b06ff6a4ab5f02f16f2b5829d16d0655eaf512030739",
+   "source_case": "t4e_p3_guided_t40",
+   "ref_area_rule": "built_projected",
+   "task4_ref_area": 2.4562277526200047
+  },
+  "flow": {
+   "mach": 0.82,
+   "aoa": 7.001333951945526,
+   "ref_area": 2.3471273132526296
+  },
+  "mesh_sha256": "b74720d9e5853c6e32759965fd5e7f5e40b37f30deba6efb6bb9a316a270b88b",
+  "mesh_bytes": 106974593,
+  "mesh_cells": 2086973,
+  "prepare_s": 225.3712978363037,
+  "memory_prepare": {
+   "peak_used_kb": 2273572,
+   "start_used_kb": 2010440,
+   "mem_total_kb": 16373452,
+   "n_samples": 114,
+   "interval_s": 2.0,
+   "source": "MemTotal - MemAvailable, /proc/meminfo"
+  }
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.18",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000943"
+ },
+ "case_definition": {
+  "name": "rt2_a5_w3_f080_h0300",
+  "kind": "design",
+  "solver": "euler",
+  "mesh": {
+   "type": "euler_tetra",
+   "size_factor": 0.8,
+   "round_decimals": 12,
+   "edge_refine": {
+    "h0": 0.00375,
+    "growth": 0.15
+   },
+   "size_min": 0.00375
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "design": {
+   "params": [
+    34.848396875838745,
+    4.183118595225794,
+    3.8171129724977555,
+    11.164058140553525,
+    0.37855602062029126,
+    0.3670953986967849,
+    0.2889759175981732,
+    0.6232564011740911,
+    0.9482698747481186,
+    0.9389418563406521,
+    0.5593577246482443,
+    0.5966182774170976,
+    0.2743572773700903,
+    -2.197605059462414,
+    -3.3915994607225497,
+    -2.103637621991435,
+    -1.413369575506459,
+    0.19825938491353814,
+    0.09180346595039073,
+    0.2902094971356983,
+    -0.0023478345698729128,
+    0.36636067585304405,
+    -0.03567594559454294,
+    0.3536150083535508,
+    0.12046590538090042,
+    0.2666325474578287,
+    0.28987453168844135,
+    -0.14627541686984985,
+    -0.04036057999178977,
+    -0.2528669518945287,
+    0.058219516911327915,
+    -0.36962431254979067,
+    0.02942557657961333,
+    -0.22930158569459855,
+    -0.10313756699215679,
+    0.0863881110379308,
+    0.2685593794202218,
+    0.1598688857804113
+   ],
+   "mach": 0.82,
+   "aoa_deg": 7.001333951945526,
+   "ref_area": 2.3471273132526296,
+   "point": 3,
+   "cohort": "guided_t40",
+   "seed": 0,
+   "params_sha": "e1b922c17b97183a",
+   "params_sha256": "e1b922c17b97183aa4c7b06ff6a4ab5f02f16f2b5829d16d0655eaf512030739",
+   "source_case": "t4e_p3_guided_t40",
+   "ref_area_rule": "built_projected",
+   "task4_ref_area": 2.4562277526200047
+  },
+  "note": "RT2 A5 global size check: w3, size factor 0.8, edge size 0.003 absolute (nominal h0 0.00375)",
+  "convergence": {
+   "mode": "all",
+   "residual_drop_orders": 5,
+   "cd_window_iters": 200,
+   "cd_change_max": 5e-06
+  }
+ },
+ "runner_commit": "94882bd41c427fa39f41a12d15c813c4e9b89331",
+ "run_id": "40686981830",
+ "jobs": [
+  {
+   "job_start": 1793194378.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "memory_solve_jobs": [
+  {
+   "peak_used_kb": 5380940,
+   "start_used_kb": 1729204,
+   "mem_total_kb": 16373452,
+   "n_samples": 506,
+   "interval_s": 2.0,
+   "source": "MemTotal - MemAvailable, /proc/meminfo"
+  }
+ ],
+ "created_utc": "2026-10-28T13:53:47Z",
+ "final_aoa": null
+}
