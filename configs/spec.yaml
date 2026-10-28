@@ -522,3 +522,9 @@ rt2:
     update_aoa_iter_limit: 100
     start_aoa: Task 4 trimmed AoA (5.08 deg)
     pass: A7 rule (5 orders, CD Cauchy 0.05 counts over 200 iterations, |CL - target| <= 1e-4) at both levels
+  a5_fixed_cl:                       # 28 Oct 2026, added after the fixed-AoA A5 results (W3 at AoA 7.0 deg has CL 0.68 vs
+                                     #  target 0.526 and a low observed order) and before these runs: the same F2 levels at
+                                     #  the RT4 condition (fixed CL = design-point target), so the mesh rule is judged where
+                                     #  RT4 runs. Settings as rt2.fixed_cl_check; analysis as rt2.a5.analysis.
+    w3: {design: t4e_p3_guided_t40, levels_h0: [0.003, 0.002, 0.0015, 0.001, 0.00075]}
+    w0: {design: t4e_p0_guided_t40, levels_h0: [0.002, 0.001, 0.00075]}   # 3e-3 and 1.5e-3: rt2_fcl_w0_* (fixed_cl_check)

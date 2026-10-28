@@ -1,24 +1,14 @@
 {
- "note": "RT2 A5 grid study: w3 = t4e_p3_guided_t40; w0 = t4e_p0_guided_t40 | RT2 fixed-CL check: t4e_p0_guided_t40 at edge h0 [0.003, 0.0015]",
+ "note": "RT2 A5 at fixed CL (RT4 condition): W3 five F2 levels, W0 three more levels",
  "cases": [
-  "rt2_a5_w3_h0300",
-  "rt2_a5_w3_h0200",
-  "rt2_a5_w3_h0150",
-  "rt2_a5_w3_h0100",
-  "rt2_a5_w3_h0075",
-  "rt2_a5_w3_h0300_rt1",
-  "rt2_a5_w3_f080_h0300",
-  "rt2_a5_w3_f080_h0150",
-  "rt2_a5_w3_f125_h0300",
-  "rt2_a5_w3_f125_h0150",
-  "rt2_a5_w0_h0300",
-  "rt2_a5_w0_h0200",
-  "rt2_a5_w0_h0150",
-  "rt2_a5_w0_h0100",
-  "rt2_a5_w0_h0075",
-  "rt2_a5_w0_h0300_rt1",
-  "rt2_fcl_w0_h0300",
-  "rt2_fcl_w0_h0150"
+  "rt2_fcl_w3_h0300",
+  "rt2_fcl_w3_h0200",
+  "rt2_fcl_w3_h0150",
+  "rt2_fcl_w3_h0100",
+  "rt2_fcl_w3_h0075",
+  "rt2_fcl_w0_h0200",
+  "rt2_fcl_w0_h0100",
+  "rt2_fcl_w0_h0075"
  ],
  "reference": false
 }
