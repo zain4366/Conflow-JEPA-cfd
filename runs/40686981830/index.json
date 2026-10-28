@@ -1,0 +1,16 @@
+{
+ "run_id": "40686981830",
+ "created_utc": "2026-10-28T14:00:49Z",
+ "cases": {
+  "rt2_a5_w3_h0300": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  },
+  "rt2_a5_w3_f080_h0300": {
+   "status": "converged",
+   "stop_reason": null,
+   "n_iter": 500
+  }
+ }
+}
