@@ -1,20 +1,14 @@
 {
- "note": "RT2 A5 mesh probe + A6 determinism copies (mesh only): RT2 A5 mesh probe (mesh only, W3): achieved LE/TE spacing vs h0 and size_min, cells, memory | RT2 A6 determinism: 8 identical mesh-only copies of W3 (h0 1.5e-3, rounded surface)",
+ "note": "RT2 A5 at fixed CL via su2-quick (single job per case; the su2 queue is held by rt2_a5_w0_h0075): RT2 A5 at fixed CL (RT4 condition): W3 five F2 levels, W0 three more levels",
  "cases": [
-  "rt2_probe_w3_h30",
-  "rt2_probe_w3_h20",
-  "rt2_probe_w3_h15",
-  "rt2_probe_w3_h10",
-  "rt2_probe_w3_h10s10",
-  "rt2_probe_w3_h075s075",
-  "rt2_det_w3_c1",
-  "rt2_det_w3_c2",
-  "rt2_det_w3_c3",
-  "rt2_det_w3_c4",
-  "rt2_det_w3_c5",
-  "rt2_det_w3_c6",
-  "rt2_det_w3_c7",
-  "rt2_det_w3_c8"
+  "rt2_fcl_w3_h0300",
+  "rt2_fcl_w3_h0200",
+  "rt2_fcl_w3_h0150",
+  "rt2_fcl_w3_h0100",
+  "rt2_fcl_w3_h0075",
+  "rt2_fcl_w0_h0200",
+  "rt2_fcl_w0_h0100",
+  "rt2_fcl_w0_h0075"
  ],
  "reference": false
 }
