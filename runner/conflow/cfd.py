@@ -213,6 +213,12 @@ def read_surface_csv(path) -> dict:
     return _read_csv_columns(path)
 
 
+def final_aoa(hist: dict):
+    """Last logged angle of attack (history field AoA, written when HISTORY_OUTPUT has the AOA group), else None."""
+    a = hist.get("AoA")
+    return None if a is None or len(a) == 0 else float(a[-1])
+
+
 # ============================================================================= convergence rule
 
 def convergence_settings() -> dict:
@@ -221,10 +227,84 @@ def convergence_settings() -> dict:
                 window_iters=int(c["window_iters"]), residual_field=c["residual_field"])
 
 
-def convergence_status(hist: dict, orders=None, cl_tol=None, window=None, field=None, cl_field="CL") -> dict:
+A7_RULE_KEYS = {"mode", "residual_drop_orders", "cd_window_iters", "cd_change_max", "cl_target_tol", "cl_target", "field"}
+
+
+def _check_rule(rule: dict) -> dict:
+    """RT2 / A7 convergence rule (case["convergence"]): every criterion must hold ('all'). Keys: residual_drop_orders
+    (log10 drop of the residual field, first minus last logged value), cd_window_iters and cd_change_max (Cauchy test:
+    max - min of CD over the last window), cl_target_tol and optional cl_target (|CL_final - CL_target| <= tol, fixed-CL
+    cases; the target is taken from the case's fixed-CL settings), field (default spec cfd.convergence.residual_field)."""
+    if not isinstance(rule, dict) or set(rule) - A7_RULE_KEYS:
+        raise ValueError(f"unknown convergence rule keys {sorted(set(rule) - A7_RULE_KEYS) if isinstance(rule, dict) else rule}")
+    if rule.get("mode") != "all":
+        raise ValueError(f"convergence rule mode must be 'all', got {rule.get('mode')!r}")
+    need = {"residual_drop_orders", "cd_window_iters", "cd_change_max"}
+    if need - set(rule):
+        raise ValueError(f"convergence rule needs {sorted(need)}")
+    if "cl_target" in rule and "cl_target_tol" not in rule:
+        raise ValueError("convergence rule with cl_target needs cl_target_tol")
+    out = dict(rule)
+    for k in ("residual_drop_orders", "cd_change_max", "cl_target_tol", "cl_target"):
+        if k in out:
+            out[k] = float(out[k])
+            if not math.isfinite(out[k]) or (k != "cl_target" and out[k] <= 0):
+                raise ValueError(f"convergence rule {k} must be a positive number, got {rule[k]}")
+    out["cd_window_iters"] = int(out["cd_window_iters"])
+    if out["cd_window_iters"] < 2:
+        raise ValueError("cd_window_iters must be >= 2")
+    return out
+
+
+def _convergence_all(hist: dict, rule: dict) -> dict:
+    rule = _check_rule(rule)
+    field = rule.get("field", convergence_settings()["residual_field"])
+    r = np.asarray(hist.get(field, np.zeros(0)), float)
+    cl = np.asarray(hist.get("CL", np.zeros(0)), float)
+    cd = np.asarray(hist.get("CD", np.zeros(0)), float)
+    n = int(len(r))
+    out = dict(status="no_data", criterion=None, n_iter=n, residual_drop_orders=None, cd_change_window=None,
+               cl_final=None, cl_error=None, checks={}, rule=dict(rule, field=field))
+    if n == 0:
+        return out
+    if not (np.isfinite(r[-1]) and (len(cl) == 0 or np.isfinite(cl[-1])) and (len(cd) == 0 or np.isfinite(cd[-1]))):
+        out["status"] = "diverged"
+        return out
+    w = rule["cd_window_iters"]
+    out["residual_drop_orders"] = float(r[0] - r[-1])
+    chk = dict(residual_drop=out["residual_drop_orders"] >= rule["residual_drop_orders"])
+    if len(cd) >= w:
+        out["cd_change_window"] = float(np.max(cd[-w:]) - np.min(cd[-w:]))
+    chk["cd_cauchy"] = out["cd_change_window"] is not None and out["cd_change_window"] <= rule["cd_change_max"]
+    if len(cl):
+        out["cl_final"] = float(cl[-1])
+    if "cl_target" in rule:
+        out["cl_error"] = None if out["cl_final"] is None else float(out["cl_final"] - rule["cl_target"])
+        chk["cl_target"] = out["cl_error"] is not None and abs(out["cl_error"]) <= rule["cl_target_tol"]
+    out["checks"] = chk
+    out["status"] = "converged" if all(chk.values()) else "unconverged"
+    out["criterion"] = "all" if out["status"] == "converged" else None
+    return out
+
+
+def case_convergence_rule(case: dict):
+    """The case's A7 rule (None = PLAN section 4 rule); a fixed-CL case adds its target CL."""
+    if "convergence" not in case:
+        return None
+    rule = dict(case["convergence"])
+    fc = case.get("flow", {}).get("fixed_cl")
+    if fc is not None:
+        rule["cl_target"] = float(_check_fixed_cl(fc)["target_cl"])
+    return _check_rule(rule)
+
+
+def convergence_status(hist: dict, orders=None, cl_tol=None, window=None, field=None, cl_field="CL", rule=None) -> dict:
     """PLAN section 4: converged if the log10 residual dropped by >= `orders` (first logged value
     minus last value) or max-min of CL over the last `window` iterations is < `cl_tol`.
-    'diverged' if the last residual or CL is not finite. Otherwise 'unconverged'."""
+    'diverged' if the last residual or CL is not finite. Otherwise 'unconverged'.
+    With `rule` (RT2 / A7, see _check_rule) every criterion of the rule must hold instead."""
+    if rule is not None:
+        return _convergence_all(hist, rule)
     s = convergence_settings()
     orders = s["residual_drop_orders"] if orders is None else orders
     cl_tol = s["cl_change"] if cl_tol is None else cl_tol
@@ -410,7 +490,7 @@ def _hist_files(work: Path):
 
 
 def run_segments(work, cfg: dict, su2_cmd, segment_iters: int, max_iters: int, deadline: float,
-                 log=print) -> dict:
+                 log=print, rule=None) -> dict:
     """Run SU2 in segments of `segment_iters` iterations, restarting from its own solution, until
     the convergence rule holds, the iteration cap is reached, SU2 fails, or the wall-clock
     `deadline` (epoch seconds) would be passed by the next segment ('paused': resume later).
@@ -420,7 +500,7 @@ def run_segments(work, cfg: dict, su2_cmd, segment_iters: int, max_iters: int, d
     st = json.loads(sp.read_text()) if sp.exists() else dict(segments=[], status="pending")
     while True:
         h = concat_histories([read_history(p) for p in _hist_files(work)])
-        conv = convergence_status(h)
+        conv = convergence_status(h, rule=rule)
         n_done = int(conv["n_iter"])
         st.update(convergence=conv, n_iter=n_done)
         if conv["status"] in ("converged", "diverged"):
@@ -872,7 +952,7 @@ def distance_to_surface(points, v, f, k=12):
 
 
 def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_threads=None, log=None,
-                 wall_size_factor=None, edge_refine=None) -> dict:
+                 wall_size_factor=None, edge_refine=None, size_min=None) -> dict:
     """Tetrahedral Euler mesh around a SuperWing-format surface (3, 129, 257), SW frame in, SU2 frame
     out. Wing = two OpenCASCADE lofts (root-kink, kink-tip) through B-spline sections that interpolate
     the data nodes; the root section lies on the symmetry plane; the far field is a half box of
@@ -882,7 +962,12 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
     size_wing_max) but not the far-field size; None (default) leaves every gmsh call as in Task 4.
     RT1 option: `edge_refine` = dict(h0, growth) adds a size field around the leading- and trailing-edge curves of the
     wall, h = h0 + growth * d (both scaled with the wall sizes), up to the near-wall size; the edge curves are found by
-    their distance to the data LE / TE lines and the call fails if the LE or a TE curve is not found."""
+    their distance to the data LE / TE lines and the call fails if the LE or a TE curve is not found.
+    RT2 option: `size_min` (root-chord units, scaled like the wall sizes) replaces spec size_min as gmsh's global minimum
+    element size (Mesh.MeshSizeMin, a floor on every size field); None keeps the spec value. With edge_refine the record
+    also holds the achieved node spacing of the 1D mesh on the LE and TE curves (edge_refine.achieved)."""
+    if size_min is not None and not (math.isfinite(float(size_min)) and float(size_min) > 0):
+        raise ValueError(f"size_min must be > 0, got {size_min}")
     if wall_size_factor is not None and not (float(wall_size_factor) > 0):
         raise ValueError(f"wall_size_factor must be > 0, got {wall_size_factor}")
     if edge_refine is not None:
@@ -990,7 +1075,8 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
                             dist_max=(hw - h0) / edge_refine["growth"], n_le_curves=len(le_c), n_te_curves=len(te_c),
                             stop_at_dist_max=True)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", ms["curvature_points"])
-        gmsh.option.setNumber("Mesh.MeshSizeMin", ms["size_min"] * fw)
+        smin = float(ms["size_min"] if size_min is None else size_min)
+        gmsh.option.setNumber("Mesh.MeshSizeMin", smin * fw)
         gmsh.option.setNumber("Mesh.MeshSizeMax", ms["size_far"] * f)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
@@ -1000,6 +1086,8 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
         gmsh.model.mesh.generate(3)
         types, tags3, _ = gmsh.model.mesh.getElements(3)
         n_cells = int(sum(len(t) for t in tags3))
+        if edge_rec is not None:
+            edge_rec["achieved"] = dict(le=_curve_spacing(le_c), te=_curve_spacing(te_c))
         wn = set()
         for t in wall:
             nt, _, _ = gmsh.model.mesh.getNodes(2, t, includeBoundary=True)
@@ -1022,12 +1110,29 @@ def wing_mesh_3d(s_sw, out_path, size_factor=1.0, radius=None, stride=None, n_th
                wall_to_data_max=float(dist.max()),
                wall_to_data_rms=float(np.sqrt(np.mean(dist ** 2))), y_symmetry=y_root,
                size_factor=float(size_factor), radius=radius, mesh_seconds=time.time() - t0,
-               gmsh_version=gmsh_version, options={k: ms[k] for k in ms})
+               gmsh_version=gmsh_version, options={k: ms[k] for k in ms}, size_min=smin, size_min_scaled=smin * fw)
     if wall_size_factor is not None:
         out["wall_size_factor"] = float(wall_size_factor)
     if edge_rec is not None:
         out["edge_refine"] = edge_rec
     return out
+
+
+def _curve_spacing(curves) -> dict:
+    """Spacing of consecutive mesh nodes along gmsh curves (ordered by the curve parameter), root-chord units: the
+    edge size the mesher actually produced on the LE / TE curves."""
+    import gmsh
+    seg = []
+    for c in curves:
+        _, xyz, par = gmsh.model.mesh.getNodes(1, c, includeBoundary=True)
+        x = np.asarray(xyz).reshape(-1, 3)[np.argsort(np.asarray(par))]
+        seg.append(np.linalg.norm(np.diff(x, axis=0), axis=1))
+    d = np.concatenate(seg) if seg else np.zeros(0)
+    if len(d) == 0:
+        return dict(n_segments=0, median=None)
+    q = np.percentile(d, [10, 50, 90])
+    return dict(n_segments=int(len(d)), median=float(q[1]), p10=float(q[0]), p90=float(q[2]), min=float(d.min()),
+                max=float(d.max()), mean=float(d.mean()))
 
 
 def _check_edge_refine(er) -> dict:
@@ -1071,7 +1176,23 @@ def _edge_curves(wall, P, le, tol=2e-3, n_sample=7):
     return found["le"], found["te"]
 
 
-EULER_MESH_OPTIONS = ("sharp_te", "wall_size_factor", "farfield_radius", "edge_refine")   # RT1 design-case mesh options
+EULER_MESH_OPTIONS = ("sharp_te", "wall_size_factor", "farfield_radius", "edge_refine",   # RT1 design-case mesh options
+                      "round_decimals", "size_min")                                       # RT2 (A6 rounding, A5 floor)
+
+
+def round_surface(s, decimals: int) -> np.ndarray:
+    """RT2 / A6: the built surface rounded to `decimals` decimal places before meshing, so 1-ulp differences of the
+    builder between CPU models (results/rt1/a6_determinism.json) give the same mesher input; -0.0 becomes 0.0."""
+    return np.round(np.asarray(s, np.float64), int(decimals)) + 0.0
+
+
+def array_sha256(a) -> str:
+    """SHA-256 of an array's dtype, shape and C-order bytes."""
+    import hashlib
+    a = np.ascontiguousarray(a)
+    h = hashlib.sha256(f"{a.dtype.str}|{a.shape}|".encode())
+    h.update(a.tobytes())
+    return h.hexdigest()
 
 
 def euler_mesh_options(mesh: dict) -> dict:
@@ -1088,9 +1209,17 @@ def euler_mesh_options(mesh: dict) -> dict:
             out["sharp_te"] = True
     if "edge_refine" in mesh:
         out["edge_refine"] = _check_edge_refine(mesh["edge_refine"])
-    for k in ("wall_size_factor", "farfield_radius"):
+    if "round_decimals" in mesh:
+        d = mesh["round_decimals"]
+        if isinstance(d, bool) or not isinstance(d, (int, np.integer)) or not 0 <= int(d) <= 17:
+            raise ValueError(f"round_decimals must be an integer from 0 to 17, got {d!r}")
+        out["round_decimals"] = int(d)
+    for k in ("wall_size_factor", "farfield_radius", "size_min"):
         if k in mesh:
-            v = float(mesh[k])
+            try:
+                v = float(mesh[k])
+            except (TypeError, ValueError):
+                raise ValueError(f"{k} must be a positive number, got {mesh[k]!r}") from None
             if not (math.isfinite(v) and v > 0):
                 raise ValueError(f"{k} must be a positive number, got {mesh[k]}")
             out[k] = v
@@ -1284,7 +1413,22 @@ def _euler_mesh_kwargs(mesh: dict, allow_sharp: bool = True):
         kw["radius"] = opt["farfield_radius"]
     if "edge_refine" in opt:
         kw["edge_refine"] = opt["edge_refine"]
+    if "size_min" in opt:
+        kw["size_min"] = opt["size_min"]
     return opt, kw
+
+
+def _mesh_surface(surf, p, opt, work, geom):
+    """Surface handed to the mesher: sharp-TE rebuild (RT1 option) and/or rounding (RT2 option); saved as
+    surface_meshed.npy when it differs from the builder output. Returns (surface, sha256 record)."""
+    msurf = surf
+    if opt.get("sharp_te"):
+        msurf = geom.build_surface(p, te_thickness=0.0)
+    if "round_decimals" in opt:
+        msurf = round_surface(msurf, opt["round_decimals"])
+    if msurf is not surf:
+        np.save(work / "surface_meshed.npy", msurf)
+    return msurf, dict(builder=array_sha256(surf), meshed=array_sha256(msurf))
 
 
 def prepare_case(case: dict, work, log=print) -> dict:
@@ -1363,18 +1507,8 @@ def prepare_case(case: dict, work, log=print) -> dict:
         surf = _geom.build_surface(p)
         np.save(work / "surface_builder.npy", surf)
         if case["mesh"]["type"] == "euler_tetra":
-            opt = euler_mesh_options(case["mesh"])
-            kw = {}
-            if "wall_size_factor" in opt:
-                kw["wall_size_factor"] = opt["wall_size_factor"]
-            if "farfield_radius" in opt:
-                kw["radius"] = opt["farfield_radius"]
-            if "edge_refine" in opt:
-                kw["edge_refine"] = opt["edge_refine"]
-            msurf = surf
-            if opt.get("sharp_te"):
-                msurf = _geom.build_surface(p, te_thickness=0.0)
-                np.save(work / "surface_meshed.npy", msurf)
+            opt, kw = _euler_mesh_kwargs(case["mesh"])
+            msurf, prep["surface_sha256"] = _mesh_surface(surf, p, opt, work, _geom)
             st = wing_mesh_3d(msurf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log, **kw)
             if opt:
                 prep["mesh_options"] = opt
@@ -1400,13 +1534,14 @@ def prepare_case(case: dict, work, log=print) -> dict:
         if kind == "a2_dataset":
             surf = _data.NpySource(hf_url(repo, rev, "origingeom.npy")).read(row, row + 1)[0].astype(np.float64)
             np.save(work / "surface_origingeom.npy", surf)
-            msurf = surf
+            msurf = round_surface(surf, opt["round_decimals"]) if "round_decimals" in opt else surf
+            if msurf is not surf:
+                np.save(work / "surface_meshed.npy", msurf)
+            prep["surface_sha256"] = dict(builder=array_sha256(surf), meshed=array_sha256(msurf))
         else:
             surf = _geom.build_surface(ds["params"])
             np.save(work / "surface_builder.npy", surf)
-            msurf = _geom.build_surface(ds["params"], te_thickness=0.0) if opt.get("sharp_te") else surf
-            if opt.get("sharp_te"):
-                np.save(work / "surface_meshed.npy", msurf)
+            msurf, prep["surface_sha256"] = _mesh_surface(surf, ds["params"], opt, work, _geom)
         cp_ref = _data.NpySource(hf_url(repo, rev, "data.npy")).read(ci, ci + 1, channel=0)[0]
         np.save(work / "cp_adflow_cells.npy", cp_ref)
         st = wing_mesh_3d(msurf, work / "mesh.su2", size_factor=float(case["mesh"]["size_factor"]), log=log, **kw)
@@ -1453,9 +1588,37 @@ def _count_cells(path) -> int:
     raise ValueError(f"no NELEM in {path}")
 
 
+FIXED_CL_KEYS = ("target_cl", "dcl_dalpha", "update_aoa_iter_limit")
+
+
+def _check_fixed_cl(fc) -> dict:
+    """RT2 fixed-CL settings (case["flow"]["fixed_cl"]): target CL, the initial dCL/dalpha estimate (per degree) and the
+    number of iterations between AoA updates. SU2 8.5 CL driver (CEulerSolver::FixedCL_Convergence): with SU2's own
+    convergence test disabled (as here) the AoA is updated every update_aoa_iter_limit iterations by
+    (CL_target - CL) / dCL_dalpha; the AoA is carried across restarts in the restart file metadata."""
+    if not isinstance(fc, dict) or set(fc) != set(FIXED_CL_KEYS):
+        raise ValueError(f"fixed_cl must have exactly {list(FIXED_CL_KEYS)}, got {fc!r}")
+    out = dict(target_cl=float(fc["target_cl"]), dcl_dalpha=float(fc["dcl_dalpha"]),
+               update_aoa_iter_limit=int(fc["update_aoa_iter_limit"]))
+    if not (math.isfinite(out["target_cl"]) and math.isfinite(out["dcl_dalpha"]) and out["dcl_dalpha"] > 0
+            and out["update_aoa_iter_limit"] >= 1 and out["update_aoa_iter_limit"] == float(fc["update_aoa_iter_limit"])):
+        raise ValueError(f"bad fixed_cl settings {fc!r}")
+    return out
+
+
+def fixed_cl_config(fc) -> dict:
+    fc = _check_fixed_cl(fc)
+    return {"FIXED_CL_MODE": True, "TARGET_CL": fc["target_cl"], "DCL_DALPHA": fc["dcl_dalpha"],
+            "UPDATE_AOA_ITER_LIMIT": fc["update_aoa_iter_limit"],
+            "ITER_DCL_DALPHA": 0,          # no finite-difference dCL/dalpha phase (it would change AoA at the end)
+            "EVAL_DOF_DCX": False,
+            "HISTORY_OUTPUT": ("ITER", "RMS_RES", "AERO_COEFF", "WALL_TIME", "AOA", "FIXED_CL")}
+
+
 def case_config(case: dict, prep: dict) -> dict:
     fl = dict(case["flow"])
     fl.update(prep.get("flow", {}))
+    fixed_cl = fl.pop("fixed_cl", None)
     mk = case["markers"]
     common = dict(wall=mk["wall"], far=mk["far"], sym=mk.get("sym"), ref_area=fl["ref_area"],
                   ref_length=fl["ref_length"], moment_ref=tuple(fl["moment_ref"]))
@@ -1467,8 +1630,63 @@ def case_config(case: dict, prep: dict) -> dict:
                            fl["temperature"], scheme=nm["scheme"], multigrid=nm["multigrid"], cfl=nm["cfl"], **common)
     else:
         raise ValueError(case["solver"])
+    if fixed_cl is not None:
+        c.update(fixed_cl_config(fixed_cl))
     c.update(case.get("config_overrides", {}))
     return c
+
+
+def is_mesh_only(case: dict) -> bool:
+    """RT2: a case with mesh_only true is meshed (prepare_case) and not solved; the runner records status 'meshed'."""
+    v = case.get("mesh_only", False)
+    if not isinstance(v, bool):
+        raise ValueError(f"mesh_only must be true or false, got {v!r}")
+    return v
+
+
+class MemorySampler:
+    """Samples MemTotal - MemAvailable (/proc/meminfo) every interval_s in a thread; result() gives the peak system
+    memory in use (gmsh in this process plus every SU2 MPI rank), the value at the start and the total."""
+
+    def __init__(self, interval_s=2.0, path="/proc/meminfo"):
+        self.interval_s, self.path = float(interval_s), path
+        self.samples, self.total = [], None
+
+    def _read(self):
+        d = {}
+        for ln in Path(self.path).read_text().splitlines():
+            k, v = ln.split(":", 1)
+            d[k] = int(v.split()[0])
+        return d["MemTotal"], d["MemTotal"] - d["MemAvailable"]
+
+    def _loop(self):
+        while not self._stop.wait(self.interval_s):
+            try:
+                self.samples.append(self._read()[1])
+            except (OSError, KeyError, ValueError):
+                pass
+
+    def __enter__(self):
+        import threading
+        self.total, used = self._read()
+        self.samples = [used]
+        self._stop = threading.Event()
+        self._t = threading.Thread(target=self._loop, daemon=True)
+        self._t.start()
+        return self
+
+    def __exit__(self, *exc):
+        self._stop.set()
+        self._t.join()
+        try:
+            self.samples.append(self._read()[1])
+        except (OSError, KeyError, ValueError):
+            pass
+        return False
+
+    def result(self) -> dict:
+        return dict(peak_used_kb=int(max(self.samples)), start_used_kb=int(self.samples[0]), mem_total_kb=int(self.total),
+                    n_samples=len(self.samples), interval_s=self.interval_s, source="MemTotal - MemAvailable, /proc/meminfo")
 
 
 def timing_summary(work) -> dict:

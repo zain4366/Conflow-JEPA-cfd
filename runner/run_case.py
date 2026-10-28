@@ -26,7 +26,7 @@ from conflow import cfd  # noqa: E402
 from conflow.records import sha256_file, utc_now  # noqa: E402
 from conflow.spec import load_spec  # noqa: E402
 
-FINAL = ("converged", "unconverged", "diverged", "failed")
+FINAL = ("converged", "unconverged", "diverged", "failed", "meshed")
 
 
 def machine() -> dict:
@@ -66,7 +66,7 @@ def write_out(case, work: Path, out: Path, st: dict, prep: dict, extra: dict):
                timing=cfd.timing_summary(work) if (work / "state.json").exists() else None,
                prepared=prep, su2_version=su2_version(), machine=machine(), case_definition=case,
                runner_commit=os.environ.get("GITHUB_SHA"), run_id=os.environ.get("GITHUB_RUN_ID"),
-               jobs=st.get("jobs", []), created_utc=utc_now())
+               jobs=st.get("jobs", []), memory_solve_jobs=st.get("memory_solve_jobs", []), created_utc=utc_now())
     rec.update(extra)
     if any(work.glob("history_seg*.csv")):
         cfd.merged_history_csv(work, out / "history.csv")
@@ -110,19 +110,32 @@ def main() -> int:
     pp = work / "prepared.json"
     prep, extra = None, {}
     try:
+        mesh_only = cfd.is_mesh_only(case)
+        rule = cfd.case_convergence_rule(case)          # RT2 / A7 rule if the case has one, else PLAN section 4
         if pp.exists():
             prep = json.loads(pp.read_text())
         else:
-            prep = cfd.prepare_case(case, work, log=print)
+            with cfd.MemorySampler() as mem:
+                prep = cfd.prepare_case(case, work, log=print)
+            prep["memory_prepare"] = mem.result()
             pp.write_text(json.dumps(prep, indent=1, default=str))
-        cfg = cfd.case_config(case, prep)
-        kind = "euler" if case["solver"] == "euler" else "rans"
-        n = os.cpu_count() or 1
-        cmd = ["mpirun", "--oversubscribe", "-np", str(n), "SU2_CFD"] if n > 1 else ["SU2_CFD"]
-        st = cfd.run_segments(work, cfg, cmd, rs["segment_iters"][kind], rs["max_iters"][kind], deadline, log=print)
+        if mesh_only:
+            st.update(status="meshed", stop_reason="mesh_only case (not solved)")
+        else:
+            cfg = cfd.case_config(case, prep)
+            kind = "euler" if case["solver"] == "euler" else "rans"
+            n = os.cpu_count() or 1
+            cmd = ["mpirun", "--oversubscribe", "-np", str(n), "SU2_CFD"] if n > 1 else ["SU2_CFD"]
+            with cfd.MemorySampler() as mem:
+                st = cfd.run_segments(work, cfg, cmd, rs["segment_iters"][kind], rs["max_iters"][kind], deadline,
+                                      log=print, rule=rule)
+            st.setdefault("memory_solve_jobs", []).append(mem.result())
         if st["status"] == "paused" and a.last_job:
             st["status"] = "unconverged"
             st["stop_reason"] = f"chained-job limit ({rs['max_segments_jobs']} jobs)"
+        if not mesh_only and any(work.glob("history_seg*.csv")):
+            hh = cfd.concat_histories([cfd.read_history(p) for p in sorted(work.glob("history_seg*.csv"))])
+            extra["final_aoa"] = cfd.final_aoa(hh)
         if case["kind"] == "superwing" and (work / "surface_flow.csv").exists():
             import numpy as np
             s = cfd.read_surface_csv(work / "surface_flow.csv")

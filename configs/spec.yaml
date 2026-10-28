@@ -441,3 +441,48 @@ rt1:
                alpha 4 blunt 2-level CD 59.3 vs span-loading CDi 60.6 counts: passes rt1.fine_edge_pass on the extrapolated value"
     single_level_fails: "no single mesh passes: best single blunt level (h0 1e-3, 4.9 M cells) -10.7 counts at alpha 0"
   a2_mesh: "same two levels for both surfaces (dataset origingeom closed TE; rebuilt builder blunt TE)"
+  a2_result:                         # results/rt1/a2_geometry_vs_model.json (SU2 run 40614674392, 16 of 16 converged)
+    wings: "knn designs P1, P2, P5, P6 (configs rows 3031, 1885, 2534, 1109) at their nearest dataset condition, fixed AoA"
+    geometry_dCL: "-0.035 to -0.047 (rebuilt - dataset, mean -0.042)"
+    geometry_dCD_counts: "-23.2 to -32.6 at fixed AoA; non-induced part (CD - span-loading CDi) -1.8 to +1.7, mean -0.4"
+    model_form_dCL: "+0.103 to +0.199 (dataset-surface Euler - ADflow RANS, mean +0.157); Cp RMS 0.134 to 0.181"
+    twist_offset_deg: "-0.144 to -0.158 mean per wing; about -0.19 at the root to -0.13 to -0.15 outboard, same shape on all 4"
+    areas: "rebuilt vs dataset projected half area +0.007 to +0.056 percent; dataset s_ref_half is 0.7 to 4.1 percent above it"
+    recommendation: "bound, do not fix in RT1: at equal lift (fixed-CL reruns, A3) the geometry drag error is within about
+                     2 counts; the lift deficit is absorbed by the trim AoA. Same builder for every cohort. Twist-offset cause
+                     (root value about 0.19 deg, spline shape) is a candidate builder fix to test in RT2"
+rt2:
+  # (RT2 revision task, grid study and design freeze, branch rt2-freeze; entries dated when written, each before the runs
+  #  or analyses it governs). User decisions of 28 Oct 2026: B1 Option 2, B7 small (out-of-box table + secondary selection).
+  area_convention:                   # 28 Oct 2026 (RT1 inheritance); replaces task4.reference_area (regression rule)
+    rule: built_projected            # conflow.refarea.projected_half_area: upper surface of the built half wing, LE to
+                                     #  upper TE, projected on the horizontal plane, root-chord^2
+    cohorts: all                     # every cohort, retrieval included (retrieval wings are rebuilt from their parameters)
+  b1:                                # 28 Oct 2026, user decision: Option 2 (no method change, no design change)
+    option: 2
+    removed: "RQ4 conformal-guided vs mean-guided comparison (gamma = 0: bound = point prediction + constant per point)"
+    relabel: {meanguided: no-gate ablation}   # display label only; the key stays (hashed Task 4 files, runner cases)
+    rq4_comparisons: [[guided_t40, knn], [guided_s4, knn], [unguided, knn], [meanguided, knn]]   # delta = CD_c - CD_knn
+  b7:                                # 28 Oct 2026, user decision
+    out_of_box:
+      box: fit-wing [min, max] of each of the 38 parameters (task4 paramspace, ParamSpace.in_range)
+      ranges: {from: geometry.real_ranges, keys: [SA, AR, TR]}   # SuperWing sampling ranges of sweep, AR, taper
+      populations: [all seeds (18 designs per cohort), cfd set (seed 0, 6 per cohort)]
+    secondary:
+      cohorts: [guided_t40, guided_s4]
+      seed: 0
+      points: all                    # 6 design points -> 12 designs
+      constraint: all_params_in_range added to the cohort's feasibility rule; candidates, guidance and objective unchanged
+      no_feasible: recorded as no design (never replaced)
+      reproduction_check: the unconstrained selection is recomputed in the same run and its parameter SHA-256 compared with
+                          results/task4_design.json (reported, not forced)
+      status: secondary analysis; the pre-declared selection stays the primary analysis
+  determinism:                       # 28 Oct 2026 (A6)
+    round_decimals: 12               # case mesh option: built surface rounded before meshing (cfd.round_surface)
+    hashes: "prepared.surface_sha256 {builder, meshed} and prepared.mesh_sha256 (SHA-256 of mesh.su2) in status.json"
+  a7_convergence:                    # 28 Oct 2026, used by the RT2 runs and proposed for the A7 amendment (all must hold)
+    mode: all
+    residual_drop_orders: 5          # rms[Rho], first logged minus last value
+    cd_window_iters: 200
+    cd_change_max: 5.0e-6            # 0.05 counts, max - min of CD over the last 200 iterations
+    cl_target_tol: 1.0e-4            # fixed-CL cases only: |CL_final - CL_target|
