@@ -431,3 +431,5 @@ rt1:
   fine_edge_tests: [rt1_edge_a0_h20g15, rt1_edge_a0_h15g15, rt1_edge_a4_h15g15]   # fixed before those runs
   fine_edge_pass: {alpha0_cd_without_base_abs_counts: 3.0, alpha4_cd_without_base_minus_cdi_load_abs_counts: 5.0,
                    max_cells: 4.0e6}
+  round2_tests: [rt1_sedge_a0_h20g15, rt1_sedge_a0_h15g15, rt1_edge_a0_h10g15]   # fixed before those runs; same pass rule
+  round2_reason: "fine-edge alpha 0, blunt: total -27.6 / -19.8 / -15.0, without base +5.0 / +8.7 / +12.6 counts (h0 3 / 2 / 1.5e-3)"
