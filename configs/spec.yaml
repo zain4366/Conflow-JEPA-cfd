@@ -433,3 +433,11 @@ rt1:
                    max_cells: 4.0e6}
   round2_tests: [rt1_sedge_a0_h20g15, rt1_sedge_a0_h15g15, rt1_edge_a0_h10g15]   # fixed before those runs; same pass rule
   round2_reason: "fine-edge alpha 0, blunt: total -27.6 / -19.8 / -15.0, without base +5.0 / +8.7 / +12.6 counts (h0 3 / 2 / 1.5e-3)"
+  drag_procedure:                    # chosen 28 Oct 2026 from results/rt1/a1_edge_convergence.json (replaces drag_convention_candidate)
+    mesh: euler_tetra size_factor 1.0 + edge_refine growth 0.15, blunt TE as published (builder te_thickness 0.004)
+    levels_h0: [0.003, 0.0015]       # each wing solved twice
+    cd: "CD = 2 CD(h0 1.5e-3) - CD(h0 3e-3) (first order in h0); CL, CM from the h0 1.5e-3 level; total drag incl. TE base"
+    evidence: "canary alpha 0: blunt 4 levels linear (max resid 0.44), 2-level CD -2.3; sharp 3 levels CD +1.3 (exact 0);
+               alpha 4 blunt 2-level CD 59.3 vs span-loading CDi 60.6 counts: passes rt1.fine_edge_pass on the extrapolated value"
+    single_level_fails: "no single mesh passes: best single blunt level (h0 1e-3, 4.9 M cells) -10.7 counts at alpha 0"
+  a2_mesh: same two levels for both surfaces (dataset origingeom: closed TE; rebuilt: builder blunt TE)
