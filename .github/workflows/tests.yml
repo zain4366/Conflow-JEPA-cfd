@@ -1,5 +1,6 @@
 # CFD verification tests (copied from the private repo, tests/test_t2_*.py) in the same conda-forge
 # environment as the SU2 runs, including the gmsh 3D meshers. Output goes to results/latest/pytest.
+# RT2 (28 Oct 2026): tests/test_rt2_cfd.py adds the rounding, size_min, achieved-spacing, A7-rule and fixed-CL tests.
 name: tests
 on:
   push:
