@@ -153,7 +153,7 @@ Info    : [100%] Meshing curve 138 (Line)
 Info    : [100%] Meshing curve 139 (Line)
 Info    : [100%] Meshing curve 140 (Line)
 Info    : [100%] Meshing curve 141 (Line)
-Info    : Done meshing 1D (Wall 0.292562s, CPU 0.292549s)
+Info    : Done meshing 1D (Wall 0.33845s, CPU 0.337393s)
 Info    : Meshing 2D...
 Info    : [  0%] Meshing surface 1 (BSpline surface, Frontal-Delaunay)
 Info    : [ 10%] Meshing surface 3 (BSpline surface, Frontal-Delaunay)
@@ -168,16 +168,16 @@ Info    : [ 70%] Meshing surface 11 (Plane, Frontal-Delaunay)
 Info    : [ 80%] Meshing surface 12 (Plane, Frontal-Delaunay)
 Info    : [ 90%] Meshing surface 13 (Plane, Frontal-Delaunay)
 Info    : [100%] Meshing surface 14 (Plane, Frontal-Delaunay)
-Info    : Done meshing 2D (Wall 0.485375s, CPU 0.485324s)
+Info    : Done meshing 2D (Wall 0.56284s, CPU 0.562796s)
 Info    : Meshing 3D...
 Info    : 3D Meshing 1 volume with 1 connected component
 Info    : Tetrahedrizing 10165 nodes...
-Info    : Done tetrahedrizing 10173 nodes (Wall 0.18486s, CPU 0.173854s)
+Info    : Done tetrahedrizing 10173 nodes (Wall 0.230085s, CPU 0.224067s)
 Info    : Reconstructing mesh...
 Info    :  - Creating surface mesh
 Info    :  - Identifying boundary edges
 Info    :  - Recovering boundary
-Info    : Done reconstructing mesh (Wall 0.336703s, CPU 0.314693s)
+Info    : Done reconstructing mesh (Wall 0.41529s, CPU 0.397246s)
 Info    : Found volume 2
 Info    : It. 0 - 0 nodes created - worst tet radius 1028.32 (nodes removed 0 0)
 Info    : It. 500 - 500 nodes created - worst tet radius 2.58604 (nodes removed 0 0)
@@ -190,9 +190,9 @@ Info    : It. 3500 - 3498 nodes created - worst tet radius 1.04715 (nodes remove
 Info    : 3D refinement terminated (13976 nodes total):
 Info    :  - 45 Delaunay cavities modified for star shapeness
 Info    :  - 2 nodes could not be inserted
-Info    :  - 52757 tetrahedra created in 0.607755 sec. (86806 tets/s)
+Info    :  - 52757 tetrahedra created in 0.690928 sec. (76356 tets/s)
 Info    : 98 node relocations
-Info    : Done meshing 3D (Wall 1.16521s, CPU 1.14215s)
+Info    : Done meshing 3D (Wall 1.39008s, CPU 1.37189s)
 Info    : Optimizing mesh...
 Info    : Optimizing volume 2
 Info    : Optimization starts (volume = 500000) with worst = 0.000815828 / average = 0.5694:
@@ -206,9 +206,9 @@ Info    : 0.60 < quality < 0.70 :      6538 elements
 Info    : 0.70 < quality < 0.80 :      8873 elements
 Info    : 0.80 < quality < 0.90 :      5836 elements
 Info    : 0.90 < quality < 1.00 :      2623 elements
-Info    : 2092 edge swaps, 392 node relocations (volume = 500000): worst = 0.0052841 / average = 0.584249 (Wall 0.0590234s, CPU 0.058015s)
-Info    : 2394 edge swaps, 604 node relocations (volume = 500000): worst = 0.00883592 / average = 0.584721 (Wall 0.100035s, CPU 0.099026s)
-Info    : 2472 edge swaps, 725 node relocations (volume = 500000): worst = 0.00883592 / average = 0.585011 (Wall 0.137779s, CPU 0.13677s)
+Info    : 2092 edge swaps, 392 node relocations (volume = 500000): worst = 0.0052841 / average = 0.584249 (Wall 0.0637312s, CPU 0.063732s)
+Info    : 2394 edge swaps, 604 node relocations (volume = 500000): worst = 0.00883592 / average = 0.584721 (Wall 0.105721s, CPU 0.105723s)
+Info    : 2472 edge swaps, 725 node relocations (volume = 500000): worst = 0.00883592 / average = 0.585011 (Wall 0.143844s, CPU 0.143829s)
 Info    : No ill-shaped tets in the mesh :-)
 Info    : 0.00 < quality < 0.10 :       165 elements
 Info    : 0.10 < quality < 0.20 :        48 elements
@@ -220,12 +220,12 @@ Info    : 0.60 < quality < 0.70 :      6637 elements
 Info    : 0.70 < quality < 0.80 :      9008 elements
 Info    : 0.80 < quality < 0.90 :      5820 elements
 Info    : 0.90 < quality < 1.00 :      2600 elements
-Info    : Done optimizing mesh (Wall 0.175601s, CPU 0.174592s)
+Info    : Done optimizing mesh (Wall 0.191773s, CPU 0.191758s)
 Info    : 24544 nodes 83437 elements
 Info    : Writing '/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0/a.su2'...
 Info    : Writing 51330 elements and 13976 nodes
 Info    : Done writing '/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0/a.su2'
-STAGE a done 24.83222484588623
+STAGE a done 24.91453981399536
 Info    : [  0%] Union                                                                                  
 Info    : [ 10%] Union                                                                                  
 Info    : [ 20%] Union                                                                                  
@@ -381,7 +381,7 @@ Info    : [100%] Meshing curve 138 (Line)
 Info    : [100%] Meshing curve 139 (Line)
 Info    : [100%] Meshing curve 140 (Line)
 Info    : [100%] Meshing curve 141 (Line)
-Info    : Done meshing 1D (Wall 0.849323s, CPU 0.849241s)
+Info    : Done meshing 1D (Wall 0.960601s, CPU 0.95954s)
 Info    : Meshing 2D...
 Info    : [  0%] Meshing surface 1 (BSpline surface, Frontal-Delaunay)
 Info    : [ 10%] Meshing surface 3 (BSpline surface, Frontal-Delaunay)
@@ -396,16 +396,16 @@ Info    : [ 70%] Meshing surface 11 (Plane, Frontal-Delaunay)
 Info    : [ 80%] Meshing surface 12 (Plane, Frontal-Delaunay)
 Info    : [ 90%] Meshing surface 13 (Plane, Frontal-Delaunay)
 Info    : [100%] Meshing surface 14 (Plane, Frontal-Delaunay)
-Info    : Done meshing 2D (Wall 0.497014s, CPU 0.496994s)
+Info    : Done meshing 2D (Wall 0.584603s, CPU 0.584516s)
 Info    : Meshing 3D...
 Info    : 3D Meshing 1 volume with 1 connected component
 Info    : Tetrahedrizing 10259 nodes...
-Info    : Done tetrahedrizing 10267 nodes (Wall 0.182127s, CPU 0.176114s)
+Info    : Done tetrahedrizing 10267 nodes (Wall 0.233071s, CPU 0.23005s)
 Info    : Reconstructing mesh...
 Info    :  - Creating surface mesh
 Info    :  - Identifying boundary edges
 Info    :  - Recovering boundary
-Info    : Done reconstructing mesh (Wall 0.324493s, CPU 0.316475s)
+Info    : Done reconstructing mesh (Wall 0.416125s, CPU 0.409091s)
 Info    : Found volume 2
 Info    : It. 0 - 0 nodes created - worst tet radius 985.306 (nodes removed 0 0)
 Info    : It. 500 - 499 nodes created - worst tet radius 2.64832 (nodes removed 0 1)
@@ -418,9 +418,9 @@ Info    : It. 3500 - 3499 nodes created - worst tet radius 1.0486 (nodes removed
 Info    : 3D refinement terminated (14193 nodes total):
 Info    :  - 44 Delaunay cavities modified for star shapeness
 Info    :  - 1 nodes could not be inserted
-Info    :  - 53825 tetrahedra created in 0.60758 sec. (88589 tets/s)
+Info    :  - 53825 tetrahedra created in 0.732086 sec. (73522 tets/s)
 Info    : 96 node relocations
-Info    : Done meshing 3D (Wall 1.15514s, CPU 1.14599s)
+Info    : Done meshing 3D (Wall 1.44533s, CPU 1.43822s)
 Info    : Optimizing mesh...
 Info    : Optimizing volume 2
 Info    : Optimization starts (volume = 500000) with worst = 0.000714773 / average = 0.574359:
@@ -434,11 +434,11 @@ Info    : 0.60 < quality < 0.70 :      6859 elements
 Info    : 0.70 < quality < 0.80 :      8672 elements
 Info    : 0.80 < quality < 0.90 :      6168 elements
 Info    : 0.90 < quality < 1.00 :      2702 elements
-Info    : 2076 edge swaps, 361 node relocations (volume = 500000): worst = 0.00697485 / average = 0.588989 (Wall 0.0497028s, CPU 0.049702s)
-Info    : 2332 edge swaps, 527 node relocations (volume = 500000): worst = 0.00938065 / average = 0.589516 (Wall 0.0808228s, CPU 0.080823s)
-Info    : 2388 edge swaps, 640 node relocations (volume = 500000): worst = 0.00941061 / average = 0.589817 (Wall 0.109387s, CPU 0.109386s)
-Info    : 2397 edge swaps, 718 node relocations (volume = 500000): worst = 0.00985158 / average = 0.589835 (Wall 0.137097s, CPU 0.137095s)
-Info    : 2398 edge swaps, 763 node relocations (volume = 500000): worst = 0.00985158 / average = 0.589825 (Wall 0.166468s, CPU 0.166466s)
+Info    : 2076 edge swaps, 361 node relocations (volume = 500000): worst = 0.00697485 / average = 0.588989 (Wall 0.0551743s, CPU 0.055176s)
+Info    : 2332 edge swaps, 527 node relocations (volume = 500000): worst = 0.00938065 / average = 0.589516 (Wall 0.0882438s, CPU 0.088246s)
+Info    : 2388 edge swaps, 640 node relocations (volume = 500000): worst = 0.00941061 / average = 0.589817 (Wall 0.11755s, CPU 0.117553s)
+Info    : 2397 edge swaps, 718 node relocations (volume = 500000): worst = 0.00985158 / average = 0.589835 (Wall 0.145997s, CPU 0.146s)
+Info    : 2398 edge swaps, 763 node relocations (volume = 500000): worst = 0.00985158 / average = 0.589825 (Wall 0.174655s, CPU 0.174658s)
 Info    : No ill-shaped tets in the mesh :-)
 Info    : 0.00 < quality < 0.10 :       168 elements
 Info    : 0.10 < quality < 0.20 :        80 elements
@@ -450,10 +450,10 @@ Info    : 0.60 < quality < 0.70 :      6981 elements
 Info    : 0.70 < quality < 0.80 :      8811 elements
 Info    : 0.80 < quality < 0.90 :      6192 elements
 Info    : 0.90 < quality < 1.00 :      2670 elements
-Info    : Done optimizing mesh (Wall 0.209902s, CPU 0.2059s)
+Info    : Done optimizing mesh (Wall 0.226444s, CPU 0.224425s)
 Info    : 24765 nodes 84697 elements
 Info    : Writing '/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0/b.su2'...
 Info    : Writing 52367 elements and 14193 nodes
 Info    : Done writing '/tmp/pytest-of-runner/pytest-0/test_edge_refine_mesh_builds0/b.su2'
-STAGE b done 25.26968550682068
-RESULT {"a_cells": 51330, "b_cells": 52367, "b_wall": 0.0006830961885192578, "a_has": false, "er": {"h0": 0.01, "growth": 0.2, "h0_scaled": 0.03, "dist_max": 0.030000000000000027, "n_le_curves": 2, "n_te_curves": 4, "stop_at_dist_max": true}}
+STAGE b done 25.584751844406128
+RESULT {"a_cells": 51330, "b_cells": 52367, "b_wall": 0.0006830961885192578, "a_has": false, "er": {"h0": 0.01, "growth": 0.2, "h0_scaled": 0.03, "dist_max": 0.030000000000000027, "n_le_curves": 2, "n_te_curves": 4, "stop_at_dist_max": true, "achieved": {"le": {"n_segments": 702, "median": 0.004499071574482181, "p10": 0.004485745085863375, "p90": 0.004499071637004299, "min": 0.004485744712063988, "max": 0.004499075688775818, "mean": 0.004494800305110829}, "te": {"n_segments": 188, "median": 0.02986473288133676, "p10": 0.029858534081904038, "p90": 0.030054743541500745, "min": 0.02985678081469051, "max": 0.03006401869613058, "mean": 0.0299218325486323}}}}
