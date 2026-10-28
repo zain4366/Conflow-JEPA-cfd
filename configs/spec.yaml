@@ -528,3 +528,39 @@ rt2:
                                      #  RT4 runs. Settings as rt2.fixed_cl_check; analysis as rt2.a5.analysis.
     w3: {design: t4e_p3_guided_t40, levels_h0: [0.003, 0.002, 0.0015, 0.001, 0.00075]}
     w0: {design: t4e_p0_guided_t40, levels_h0: [0.002, 0.001, 0.00075]}   # 3e-3 and 1.5e-3: rt2_fcl_w0_* (fixed_cl_check)
+  b2_statistics:                     # 28 Oct 2026, for the A7 amendment, before any RT4 run
+    unit: paired difference d = CD(cohort) - CD(knn) at common lift, one per design point (6), counts
+    primary: mean with a two-sided 95% t-interval (df = n - 1)
+    checks: {bootstrap: {resamples: 10000, seed: 700, interval: percentile 2.5 / 97.5, over: design points},
+             wilcoxon: two-sided signed-rank, exact}
+    decision: "beats retrieval: 95% t-interval entirely below zero; worse: entirely above zero; otherwise no detectable
+               difference, reported with the interval"
+    sensitivity: detectable difference (t_0.975,df + t_0.80,df) * SD / sqrt(n) from the rerun SD, labelled post-study
+  mesh_rule:                         # 28 Oct 2026, fixed from the A5 results (results/rt2/a5_grid.json) before any RT4 run;
+                                     #  user delegated the choice. Verification mesh of every RT4 case.
+    family: F2                       # rt2.a5.family: edge_refine growth 0.15 at h0 with size_min = h0, size factor 1.0
+    sizes_root_chords: {edge_h0: [0.003, 0.0015], near_wall: 0.012, far_field_cell: 5.0, farfield_half_box: 50.0,
+                        curvature_points: 40}
+    relative_to: "root chord c_r (builder unit; every wing has c_r = 1): edge size h0 / c_r = 3e-3 and 1.5e-3; mean
+                  aerodynamic chord 0.66 to 0.82 c_r and semispan 3.07 to 3.85 c_r over the 42 designs (plan/RT2_FREEZE.json),
+                  so h0 = 1.8e-3 to 2.3e-3 MAC at the fine level and the far field is 13.0 to 16.3 semispans. Cell count follows
+                  the wing area; it is not a target"
+    determinism: rt2.determinism     # surface rounded to 1e-12, surface and mesh SHA-256 recorded
+    drag: "CD = 2 CD(h0 1.5e-3) - CD(h0 3e-3), each level solved at the design-point target CL (fixed-CL settings
+           rt2.fixed_cl, convergence rt2.a7_convergence); CL from the target, CM and AoA from the fine level; total drag
+           incl. the TE base"
+    grid_convergence: "not shown in the Celik sense: the pre-declared test (monotone with shrinking increments,
+                       rt2.a5.analysis) failed on every A5 sequence, so no GCI is reported. At fixed CL the P1 wing is first
+                       order in h0 (two-level 29.93 vs line 30.03 counts, Celik p 0.76 on 1 / 1.5 / 2e-3); the P4 wing
+                       steepens at the finest level (two-level 102.64 at 1.5/3e-3, 106.34 at 0.75/1.5e-3)."
+    discretisation_uncertainty: "per design point, stated beside each cohort difference: the A5 spread of the
+                                 two-level value between the pairs 1.5/3e-3 and 0.75/1.5e-3 at fixed CL (0.1 counts at P1,
+                                 3.7 counts at P4), and the sensitivity subset below for the difference itself"
+    sensitivity_subset: {cohorts: [guided_t40, knn], points: all, extra_level_h0: 0.00075,
+                         value: "CD_2 = 2 CD(0.75e-3) - CD(1.5e-3) (the 1.5e-3 level is reused); the paired difference
+                                 guided_t40 - knn at the finer pair is reported next to the primary one"}
+  fixed_cl:                          # 28 Oct 2026, from rt2.fixed_cl_check (passed at both levels); RT4 settings
+    dcl_dalpha: 0.1
+    update_aoa_iter_limit: 100
+    start_aoa: "the design's Task 4 trimmed AoA (secondary B7 designs: their own trimmed AoA)"
+    target_cl: design-point cl_target of results/task1_data.json, same for every cohort at that point
