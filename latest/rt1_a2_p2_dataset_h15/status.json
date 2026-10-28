@@ -1,0 +1,297 @@
+{
+ "case": "rt1_a2_p2_dataset_h15",
+ "status": "converged",
+ "stop_reason": null,
+ "convergence": {
+  "status": "converged",
+  "criterion": "residual_drop",
+  "n_iter": 500,
+  "residual_drop_orders": 5.395154811000001,
+  "cl_change_window": 1.4286400000007582e-05,
+  "rule": {
+   "residual_drop_orders": 5,
+   "cl_change": 0.0001,
+   "window_iters": 200,
+   "field": "rms[Rho]"
+  }
+ },
+ "n_iter": 500,
+ "iters_total": 500,
+ "wall_s_total": 1038.9619183540344,
+ "segments": [
+  {
+   "k": 0,
+   "iters_requested": 500,
+   "iters_logged": 500,
+   "wall_s": 1038.9619183540344,
+   "returncode": 0,
+   "restart": false
+  }
+ ],
+ "timing": {
+  "seconds_per_iter": 1.995519578,
+  "seconds_per_iter_mean": 2.010451846949495,
+  "startup_s_median": 30.406126673034464,
+  "n_segments": 1
+ },
+ "prepared": {
+  "kind": "a2_dataset",
+  "downloads": {
+   "configs.dat": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/configs.dat",
+    "sha256": "78f673f75b665d6b1250382c4ddfbe3de6704de0a0d2dca745470f284d0c043d",
+    "bytes": 5079529,
+    "retrieved_utc": "2026-10-28T01:23:14Z"
+   },
+   "index.npy": {
+    "url": "https://huggingface.co/datasets/yunplus/SuperWing/resolve/1cd417b5d4036b5ae70f6befce2204c4b5ccb15c/index.npy",
+    "sha256": "6028984561df7a4f377a757ada1edc4edfeb724d45c4b522e70c8ccc0f6c1671",
+    "bytes": 2770304,
+    "retrieved_utc": "2026-10-28T01:23:15Z"
+   }
+  },
+  "mesh_options": {
+   "edge_refine": {
+    "h0": 0.0015,
+    "growth": 0.15
+   }
+  },
+  "mesh3d": {
+   "n_cells": 2270015,
+   "n_wall_nodes": 89748,
+   "loft_rows": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    42,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    108,
+    112,
+    116,
+    120,
+    124,
+    128
+   ],
+   "kink_row": 42,
+   "loft_volume": 0.07592755475030458,
+   "closed_surface_volume": 0.07592247316207287,
+   "wall_to_data_max": 0.003237438004110249,
+   "wall_to_data_rms": 9.840359843817346e-05,
+   "y_symmetry": -0.3074752688407898,
+   "size_factor": 1.0,
+   "radius": 50.0,
+   "mesh_seconds": 162.63727164268494,
+   "gmsh_version": "4.15.2",
+   "options": {
+    "tool": "gmsh (OpenCASCADE loft through the data surface sections)",
+    "loft_span_stride": 4,
+    "size_min": 0.0015,
+    "size_wing_max": 0.012,
+    "size_far": 5.0,
+    "curvature_points": 40
+   },
+   "edge_refine": {
+    "h0": 0.0015,
+    "growth": 0.15,
+    "h0_scaled": 0.0015,
+    "dist_max": 0.07,
+    "n_le_curves": 2,
+    "n_te_curves": 2,
+    "stop_at_dist_max": true
+   }
+  },
+  "mesh_file": "mesh.su2",
+  "a2": {
+   "wing_row": 1885,
+   "wing_id": 1898,
+   "case_index": 13062,
+   "index_row": {
+    "wing_row": 1885.0,
+    "cond_idx": 0.0,
+    "aoa": 7.0914800328,
+    "mach": 0.7773075051,
+    "s_ref_half": 1.5703436390411825,
+    "half_span": 3.074752772085878,
+    "cl_solver": 0.44076749762131134,
+    "cd_solver": 0.015304647791709201,
+    "cm_solver": 0.4511089120066842,
+    "cl_surface": 0.4406973532161025,
+    "cd_surface": 0.015273590610226477,
+    "cm_surface": 0.45101045592325456
+   },
+   "hf_repo": "yunplus/SuperWing",
+   "hf_revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c",
+   "params": [
+    34.1913025587,
+    4.2263739913,
+    5.2999266327,
+    10.6848134628,
+    0.1510740109,
+    0.3952685968,
+    0.2575803212,
+    0.6134487642,
+    0.9689766626,
+    0.9351336461,
+    0.3906843211,
+    0.572231054,
+    0.1056918116,
+    -3.6635050393,
+    -2.549046794,
+    -1.5966458035,
+    -1.7205208278,
+    0.1820198402,
+    0.0932052945,
+    0.2769416306,
+    -0.0068523546,
+    0.3438212397,
+    0.1163739204,
+    0.1950935075,
+    0.2606293799,
+    0.2413508125,
+    0.3055438998,
+    -0.1501720958,
+    -0.0447921757,
+    -0.257745353,
+    0.06024976,
+    -0.3726738695,
+    0.0212342533,
+    -0.2253140381,
+    -0.1033769265,
+    0.0859284567,
+    0.2698421548,
+    0.1698917796
+   ],
+   "mach_target": 0.78,
+   "aoa_target": 7.693664312361761
+  },
+  "flow": {
+   "mach": 0.7773075051,
+   "aoa": 7.0914800328,
+   "ref_area": 1.5703436390411825
+  },
+  "mesh_sha256": "ded3212e838a3b50123506ddb049a4214406302c67da269cbaaf38c57e3aa9eb",
+  "mesh_bytes": 115883692,
+  "mesh_cells": 2270015,
+  "prepare_s": 166.5156888961792
+ },
+ "su2_version": "SU2 v8.5.0 \"Harrier\", The Open-Source CFD Code",
+ "machine": {
+  "nproc": 4,
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
+  "mem_total": "16373452 kB",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.18",
+  "runner_os": "Linux",
+  "runner_name": "GitHub Actions 1000000789"
+ },
+ "case_definition": {
+  "name": "rt1_a2_p2_dataset_h15",
+  "kind": "a2_dataset",
+  "solver": "euler",
+  "mesh": {
+   "type": "euler_tetra",
+   "size_factor": 1.0,
+   "edge_refine": {
+    "h0": 0.0015,
+    "growth": 0.15
+   }
+  },
+  "flow": {
+   "ref_length": 1.0,
+   "moment_ref": [
+    0.25,
+    0.0,
+    0.0
+   ]
+  },
+  "markers": {
+   "wall": "wing",
+   "far": "farfield",
+   "sym": "symmetry"
+  },
+  "hf": {
+   "repo": "yunplus/SuperWing",
+   "revision": "1cd417b5d4036b5ae70f6befce2204c4b5ccb15c"
+  },
+  "a2": {
+   "params": [
+    34.1913025587,
+    4.2263739913,
+    5.2999266327,
+    10.6848134628,
+    0.1510740109,
+    0.3952685968,
+    0.2575803212,
+    0.6134487642,
+    0.9689766626,
+    0.9351336461,
+    0.3906843211,
+    0.572231054,
+    0.10569181160000002,
+    -3.6635050393,
+    -2.549046794,
+    -1.5966458035,
+    -1.7205208278,
+    0.1820198402,
+    0.0932052945,
+    0.2769416306,
+    -0.006852354599999999,
+    0.3438212397,
+    0.1163739204,
+    0.1950935075,
+    0.26062937990000007,
+    0.2413508125,
+    0.3055438998,
+    -0.1501720958,
+    -0.0447921757,
+    -0.257745353,
+    0.06024976,
+    -0.3726738695,
+    0.0212342533,
+    -0.2253140381,
+    -0.1033769265,
+    0.0859284567,
+    0.2698421548,
+    0.1698917796
+   ],
+   "params_sha": "3d334a4e7f02ae11",
+   "mach_target": 0.78,
+   "aoa_target": 7.693664312361761,
+   "source_case": "t4e_p1_knn"
+  },
+  "note": "RT1 A2: dataset surface of the P2 knn wing (t4e_p1_knn) at its nearest dataset condition; mesh options {\"edge_refine\": {\"h0\": 0.0015, \"growth\": 0.15}}"
+ },
+ "runner_commit": "52d6fe98eaa3d49a6477adc39e4840de690a271b",
+ "run_id": "40614674392",
+ "jobs": [
+  {
+   "job_start": 1793150576.0,
+   "run_attempt": "1",
+   "job": "run"
+  }
+ ],
+ "created_utc": "2026-10-28T01:43:20Z"
+}
